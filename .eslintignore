@@ -1,0 +1,10 @@
+node_modules
+public
+dist
+!.*rc.js
+!.config.js
+!.config.ts
+!.json
+
+.dtpublishrc.json
+src/services/one-graph/generated/**

@@ -1,0 +1,9 @@
+html,
+body {
+  margin: 0;
+  min-block-size: 100vh;
+  color: #292929;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: Roboto;
+}

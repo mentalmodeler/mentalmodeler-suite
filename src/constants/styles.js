@@ -1,4 +1,53 @@
-import bg from '../assets/images/bg-2.webp';
+export const baseCellStyle = {
+    borderBottom: 'none',
+    borderRight: '1px solid',
+    borderRightColor: 'bg.light',
+    lineHeight: '1rem',
+    fontWeight: 400,
+    height: '3rem',
+};
+
+export const evenRowCellStyle = {
+    ...baseCellStyle,
+    backgroundColor: 'bg.lightest',
+};
+
+export const oddRowCellStyle = {
+    ...baseCellStyle,
+};
+
+export const topHeaderCellStyle = {
+    ...evenRowCellStyle,
+    zIndex: 4,
+    borderBottom: '1px solid',
+    borderBottomColor: 'bg.light',
+    '&:before': {
+        content: '""',
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: '-16px',
+        height: '16px',
+        backgroundColor: 'tranparent',
+        background:
+            'linear-gradient(to bottom, rgba(0, 0, 0, .1) 0%, rgba(0, 0, 0, .05) 25%, rgba(0, 0, 0, .025) 50% , rgba(0, 0, 0, 0) 100%)',
+    },
+};
+
+export const sideHeaderCellStyle = {
+    zIndex: 3,
+    '&:before': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        right: '-16px',
+        width: '16px',
+        backgroundColor: 'tranparent',
+        background:
+            'linear-gradient(to right, rgba(0, 0, 0, .1) 0%, rgba(0, 0, 0, .05) 25%, rgba(0, 0, 0, .025) 50% , rgba(0, 0, 0, 0) 100%)',
+    },
+};
 
 export const headerMaxWidth = '36rem';
 export const contentMaxWidth = '50rem';
@@ -16,25 +65,25 @@ export const colors = {
     },
 };
 
-export const header_bg = {
-    position: 'absolute',
-    inset: 0,
-    backgroundImage: `url(${bg})`,
-    filter: 'grayscale(100%)',
-    opacity: 0.15,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-};
+// export const header_bg = {
+//     position: 'absolute',
+//     inset: 0,
+//     backgroundImage: `url(${bg})`,
+//     filter: 'grayscale(100%)',
+//     opacity: 0.15,
+//     backgroundSize: 'cover',
+//     backgroundPosition: 'center',
+// };
 
-export const content_bg = {
-    // position: 'absolute',
-    // inset: 0,
-    backgroundImage: `url(${bg})`,
-    filter: 'grayscale(100%)',
-    opacity: 0.15,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-};
+// export const content_bg = {
+//     // position: 'absolute',
+//     // inset: 0,
+//     backgroundImage: `url(${bg})`,
+//     filter: 'grayscale(100%)',
+//     opacity: 0.15,
+//     backgroundSize: 'cover',
+//     backgroundPosition: 'center',
+// };
 
 export const brand_stripe = {
     // zIndex: 1,

@@ -1,94 +1,52 @@
-import {
-    ExpandLess,
-    DeleteOutline,
-    DescriptionOutlined,
-    Download,
-    ExpandMore,
-    PrintOutlined,
-    SaveOutlined,
-    Upload,
-} from '@mui/icons-material';
-import { Box, Button, Menu, MenuItem, Typography } from '@mui/material';
+import { DeleteOutline, DescriptionOutlined, Download, PrintOutlined, SaveOutlined, Upload } from '@mui/icons-material';
+import { Box, Button, Typography } from '@mui/material';
 import { Flex } from '../IFL/ifl';
-import { useState } from 'react';
-
-const NavMenu = ({ item }) => {
-    const { label, id, icon, items } = item;
-    const [anchorEl, setAnchorEl] = useState(null);
-    const open = Boolean(anchorEl);
-    const handleClick = (e) => {
-        setAnchorEl(e.currentTarget);
-    };
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
-    return (
-        <>
-            <Button
-                variant="global-nav"
-                id={id}
-                startIcon={icon}
-                endIcon={open ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
-                aria-controls={open ? 'basic-menu' : undefined}
-                aria-haspopup="true"
-                aria-expanded={open ? 'true' : undefined}
-                onClick={handleClick}
-            >
-                {label}
-            </Button>
-            <Menu
-                id="basic-menu"
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleClose}
-                MenuListProps={{
-                    'aria-labelledby': id,
-                }}
-            >
-                {items.map(({ label, id, action }) => (
-                    <MenuItem
-                        key={id}
-                        onClick={() => {
-                            action();
-                            handleClose();
-                        }}
-                    >
-                        {label}
-                    </MenuItem>
-                ))}
-            </Menu>
-        </>
-    );
-};
+// import { useSelector } from 'react-redux';
+import { loadAndParse } from 'mm-modules';
+import { createFileInput } from '../../utils/reader';
+import { NavMenu } from './NavMenu';
+import { useDispatch } from 'react-redux';
 
 export const GlobalNav = () => {
+    const dispatch = useDispatch();
+
+    const loadAndParseLocalModels = (e) => {
+        const fileList = e?.target?.files;
+        return (
+            fileList &&
+            fileList.length > 0 &&
+            Array.from(fileList).forEach(async (f) => {
+                const model = {
+                    filename: f.name.split('.')[0],
+                    ...(await loadAndParse(f)),
+                };
+
+                dispatch({
+                    type: 'models/addModel',
+                    payload: {
+                        field: '',
+                        value: model,
+                    },
+                });
+            })
+        );
+    };
+
     const navItems = [
         {
             type: 'button',
             label: 'New',
             id: 'new',
             icon: <DescriptionOutlined />,
-            action: () => {},
-        },
-        {
-            type: 'menu',
-            label: 'Save',
-            id: 'save',
-            icon: <SaveOutlined />,
-            items: [
-                {
-                    label: 'Save MMP',
-                    id: 'savemmp',
-                    icon: <SaveOutlined />,
-                    action: () => {},
-                },
-                {
-                    label: 'Save Compare Ref',
-                    id: 'savecompareref',
-                    icon: <SaveOutlined />,
-                    action: () => {},
-                },
-            ],
+            action: () => {
+                dispatch({
+                    type: 'app/setField',
+                    payload: {
+                        field: 'addDialogOpen',
+                        value: true,
+                    },
+                });
+            },
         },
         {
             type: 'menu',
@@ -101,14 +59,9 @@ export const GlobalNav = () => {
                     id: 'load',
                     icon: <Download />,
                     action: () => {
-                        let input = document.createElement('input');
-                        input.type = 'file';
-                        input.onchange = () => {
-                            // you can use this method to get file and perform respective operations
-                            console.log('input.files:', input.files);
-                            // let files = Array.from(input.files);
-                            // console.log(files);
-                        };
+                        const input = createFileInput({
+                            onchange: (e) => loadAndParseLocalModels(e),
+                        });
                         input.click();
                     },
                 },
@@ -116,7 +69,33 @@ export const GlobalNav = () => {
                     label: 'Import CSV',
                     id: 'importcsv',
                     icon: <Download />,
-                    action: () => {},
+                    action: () => {
+                        alert('Coming soon... Import csv');
+                    },
+                },
+            ],
+        },
+        {
+            type: 'menu',
+            label: 'Save',
+            id: 'save',
+            icon: <SaveOutlined />,
+            items: [
+                {
+                    label: 'Save MMP',
+                    id: 'savemmp',
+                    icon: <SaveOutlined />,
+                    action: () => {
+                        alert('Coming soon... Save mmp');
+                    },
+                },
+                {
+                    label: 'Save Compare Ref',
+                    id: 'savecompareref',
+                    icon: <SaveOutlined />,
+                    action: () => {
+                        alert('Coming soon... Save compare ref mmp');
+                    },
                 },
             ],
         },
@@ -130,13 +109,17 @@ export const GlobalNav = () => {
                     label: 'Export CSV',
                     id: 'exportcsv',
                     icon: <Upload />,
-                    action: () => {},
+                    action: () => {
+                        alert('Coming soon... Export csv');
+                    },
                 },
                 {
                     label: 'Export XLS',
                     id: 'exportxls',
                     icon: <Upload />,
-                    action: () => {},
+                    action: () => {
+                        alert('Coming soon... Export xls');
+                    },
                 },
             ],
         },
@@ -145,14 +128,18 @@ export const GlobalNav = () => {
             label: 'Remove',
             id: 'remove',
             icon: <DeleteOutline />,
-            action: () => {},
+            action: () => {
+                alert('Coming soon... Remove selected mmp/scenario');
+            },
         },
         {
             type: 'button',
             label: 'Print',
             id: 'print',
             icon: <PrintOutlined />,
-            action: () => {},
+            action: () => {
+                alert('print');
+            },
         },
     ];
 
@@ -167,7 +154,7 @@ export const GlobalNav = () => {
         >
             <Typography variant="logo" sx={{ paddingBlock: 1, paddingInline: 2, backgroundColor: 'bg.darkest' }}>
                 <Box component="span">Mental</Box>
-                <Box component="span" sx={{ color: 'primary.main' }}>
+                <Box component="span" sx={{ color: 'tabs.model' }}>
                     Modeler
                 </Box>
             </Typography>
@@ -180,7 +167,6 @@ export const GlobalNav = () => {
                     listStyle: 'none',
                     margin: 0,
                     flexWrap: 'wrap',
-                    // backgroundColor: 'bg.darker',
                 }}
             >
                 {navItems.map((item) => {
@@ -202,3 +188,35 @@ export const GlobalNav = () => {
         </Box>
     );
 };
+
+// if (fileInputRef.current) {
+// const readFile = async ({ target }) => {
+//     const file = getFile(target);
+//     if (file) {
+//         const { result } = await reader(target.files[0]);
+//         console.log('result:', result);
+//     }
+//     fileInputRef.current.removeEventListener('change', readFile);
+// };
+// fileInputRef.current.removeEventListener('change', readFile);
+// fileInputRef.current.addEventListener('change', readFile);
+// fileInputRef.current.onchange = async ({ target }) => {
+//     const file = getFile(target);
+//     if (file) {
+//         const { result } = await reader(target.files[0]);
+//         console.log('result:', result);
+//     }
+//     delete target.onchange;
+// };
+// fileInputRef.current.click();
+// }
+
+// let input = document.createElement('input');
+// input.type = 'file';
+// input.multiple = true;
+// input.onchange = (e) => {
+//     loadAndParseLocalModels(e);
+//     delete input.onchange;
+//     input.remove();
+//     input = null;
+// };

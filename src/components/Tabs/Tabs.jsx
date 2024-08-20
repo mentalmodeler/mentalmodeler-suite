@@ -1,7 +1,9 @@
 import { Apps, InfoOutlined, Insights, PlayCircleOutline, SchemaOutlined } from '@mui/icons-material';
 import { Box, Tab, Tabs as MUITabs } from '@mui/material';
-import { useState } from 'react';
-// import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { APP_VIEW } from '../../redux/slices/appSlice';
+import { useMemo } from 'react';
+import { saveModelFromConceptMap } from '../../redux/actions/models';
 
 const a11yProps = (index) => {
     return {
@@ -10,46 +12,47 @@ const a11yProps = (index) => {
     };
 };
 
+const _tabs = [
+    {
+        label: 'Model',
+        id: 'model',
+        value: APP_VIEW.MODEL,
+        icon: <SchemaOutlined fontSize="small" sx={{ transform: 'rotate(-90deg)' }} />,
+    },
+    {
+        label: 'Matrix',
+        id: 'matrix',
+        value: APP_VIEW.MATRIX,
+        icon: <Apps fontSize="small" />,
+    },
+    {
+        label: 'Preferred State & Metrics',
+        id: 'preferredstate',
+        value: APP_VIEW.METRICS,
+        icon: <Insights fontSize="small" />,
+    },
+    {
+        label: 'Scenario',
+        id: 'scenario',
+        value: APP_VIEW.SCENARIO,
+        icon: <PlayCircleOutline fontSize="small" />,
+    },
+    {
+        label: 'Info',
+        id: 'info',
+        value: APP_VIEW.INFO,
+        icon: <InfoOutlined fontSize="small" />,
+    },
+];
+
 export const Tabs = () => {
-    const _tabs = [
-        {
-            label: 'Model',
-            id: 'model',
-            icon: <SchemaOutlined fontSize="small" />,
-            action: () => {},
-        },
-        {
-            label: 'Matrix',
-            id: 'matrix',
-            icon: <Apps fontSize="small" />,
-            action: () => {},
-        },
-        {
-            label: 'Preferred State & Metrics',
-            id: 'preferredstate',
-            icon: <Insights fontSize="small" />,
-            action: () => {},
-        },
-        {
-            label: 'Scenario',
-            id: 'scenario',
-            icon: <PlayCircleOutline fontSize="small" />,
-            action: () => {},
-        },
-        {
-            label: 'Info',
-            id: 'info',
-            icon: <InfoOutlined fontSize="small" />,
-            action: () => {},
-        },
-    ];
-    const [value, setValue] = useState(0);
+    const dispatch = useDispatch();
+    const { view } = useSelector((state) => state.app) || {};
+    const activeTab = useMemo(() => _tabs.findIndex(({ value }) => view === value), [view]);
 
     return (
         <Box
             sx={{
-                borderBottom: 1,
-                borderColor: 'bg.darker',
                 gridArea: 'tabs',
                 paddingInlineEnd: 2,
                 paddingBlockStart: 2,
@@ -57,19 +60,28 @@ export const Tabs = () => {
             }}
         >
             <MUITabs
-                // variant="fullWidth"
                 variant="scrollable"
                 scrollButtons="auto"
                 allowScrollButtonsMobile
-                value={value}
+                value={activeTab}
                 onChange={(e, newValue) => {
-                    setValue(newValue);
+                    // if (_tabs[activeTab].value === APP_VIEW.MODEL) {
+                    dispatch(saveModelFromConceptMap(_tabs[activeTab].value));
+                    // }
+                    dispatch({
+                        type: 'app/setField',
+                        payload: {
+                            field: 'view',
+                            value: _tabs[newValue].value,
+                        },
+                    });
                 }}
                 aria-label="main content area tabs"
                 sx={{
                     borderStartStartRadius: 12,
                     borderStartEndRadius: 12,
-                    backgroundColor: 'bg.dark',
+                    borderBottom: 2,
+                    borderColor: 'bg.darker',
                 }}
             >
                 {_tabs.map(({ label, id, icon }) => (

@@ -57,3 +57,5 @@ export const createModel = ({ appId, filename = 'Model', scenarioName = 'Scenari
         },
     ],
 });
+
+export const isEmpty = (value) => value.trim() === '';

@@ -20,9 +20,9 @@ const validate = (key, value) => {
 
 const hasError = (errors) => Object.values(errors).some((error) => !!error);
 
-export const AddDialog = () => {
+export const SaveDialog = () => {
     const dispatch = useDispatch();
-    const { addDialogOpen } = useSelector((state) => state.app) || {};
+    const { saveDialogOpen } = useSelector((state) => state.app) || {};
     const [formErrors, setFormErrors] = useState({
         model: null,
         scenario: null,
@@ -31,7 +31,7 @@ export const AddDialog = () => {
         dispatch({
             type: 'app/setField',
             payload: {
-                field: 'addDialogOpen',
+                field: 'saveDialogOpen',
                 value: false,
             },
         });
@@ -79,14 +79,14 @@ export const AddDialog = () => {
 
     return (
         <DialogBase
-            open={addDialogOpen}
+            open={saveDialogOpen}
             onClose={onClose}
             PaperProps={{
                 component: 'form',
                 onSubmit: handleSubmit,
             }}
         >
-            <DialogBaseTitle>Add a new model</DialogBaseTitle>
+            <DialogBaseTitle>Save the selected model (and scenarios)</DialogBaseTitle>
             <DialogBaseContent>
                 <Box
                     sx={{

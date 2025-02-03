@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react';
 import { loadAndParseURL } from 'mm-modules';
 import { useDispatch } from 'react-redux';
 import { AddDialog } from './components/Dialogs/AddDialog';
+import { SaveDialog } from './components/Dialogs/SaveDialog';
 
 // const Content = () => (
 //     <Routes>
@@ -81,6 +82,7 @@ const App = () => {
                 <Content />
             </Box>
             <AddDialog />
+            <SaveDialog />
         </>
     );
 };

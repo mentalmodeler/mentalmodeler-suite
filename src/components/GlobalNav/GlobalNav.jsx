@@ -3,7 +3,8 @@ import { Box, Button, Typography } from '@mui/material';
 import { Flex } from '../IFL/ifl';
 // import { useSelector } from 'react-redux';
 import { loadAndParse } from 'mm-modules';
-import { createFileInput } from '../../utils/reader';
+import { createFileInput } from '../../utils/io';
+
 import { NavMenu } from './NavMenu';
 import { useDispatch } from 'react-redux';
 
@@ -86,7 +87,16 @@ export const GlobalNav = () => {
                     id: 'savemmp',
                     icon: <SaveOutlined />,
                     action: () => {
-                        alert('Coming soon... Save mmp');
+                        // alert('Coming soon... Save mmp');
+                        // const data = store.getState();
+                        // console.log('data:', data);
+                        dispatch({
+                            type: 'app/setField',
+                            payload: {
+                                field: 'saveDialogOpen',
+                                value: true,
+                            },
+                        });
                     },
                 },
                 {

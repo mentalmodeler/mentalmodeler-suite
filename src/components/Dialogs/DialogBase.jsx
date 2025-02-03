@@ -4,7 +4,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 // import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import { IconButton, Slide, Zoom, styled, useMediaQuery, useTheme } from '@mui/material';
+import { IconButton, Slide, Grow, Zoom, styled, useMediaQuery, useTheme } from '@mui/material';
 import { Close } from '@mui/icons-material';
 import { dialog_footer_scroll_signifier, sticky_header_before } from '../../constants/styles';
 import { useIntersctionSentinel } from '../../hooks/useIntersectionSentinel';

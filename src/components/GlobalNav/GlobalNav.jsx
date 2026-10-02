@@ -139,7 +139,7 @@ export const GlobalNav = () => {
             id: 'remove',
             icon: <DeleteOutline />,
             action: () => {
-                alert('Coming soon... Remove selected mmp/scenario');
+                dispatch({ type: 'models/removeSelected' });
             },
         },
         {

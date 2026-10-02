@@ -40,7 +40,7 @@ export const Matrix = () => {
     }, []);
 
     return (
-        <TableContainer sx={{ height: '100%', overflow: 'auto' }}>
+        <TableContainer sx={{ height: '100%', overflow: 'auto', overscrollBehavior: 'none' }}>
             <Table ref={tableRef} size="small" stickyHeader aria-label="Component matrix table">
                 <TableHead>
                     <TableRow>

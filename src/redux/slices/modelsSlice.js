@@ -2,7 +2,7 @@
 // NOTE: using Immer to manage state (included as middleware)
 // https://immerjs.github.io/immer/docs/introduction
 import { createSlice } from '@reduxjs/toolkit';
-import { createModel, makeAppId, parseScenarioId } from '../../utils/utils';
+import { createModel, makeAppId, makeScenarioId, parseScenarioId } from '../../utils/utils';
 
 const updateInfluence = ({ concepts, influencerId, influenceeId, influence }) =>
     concepts.map((concept) => {
@@ -24,6 +24,9 @@ const updateInfluence = ({ concepts, influencerId, influenceeId, influence }) =>
             relationships,
         };
     });
+
+const updateConceptField = ({ concepts, conceptId, field, value }) =>
+    concepts.map((concept) => (concept.id === conceptId ? { ...concept, [field]: value } : concept));
 
 const updateModels = (models, model) => models.map((m) => (m.appId === model.appId ? model : m));
 
@@ -66,6 +69,33 @@ const modelsSlice = createSlice({
         setField(state, action) {
             const { field, value } = action.payload;
             state[field] = value;
+        },
+        updateInfo(state, action) {
+            const { field, value } = action.payload;
+            const model = {
+                ...state.selectedModel,
+                info: {
+                    ...state.selectedModel.info,
+                    [field]: value,
+                    lastUpdated: Date.now(),
+                },
+            };
+            state.selectedModel = model;
+            state.models = updateModels(state.models, model);
+        },
+        setPreferredState(state, action) {
+            const { conceptId, value } = action.payload;
+            const model = {
+                ...state.selectedModel,
+                concepts: updateConceptField({
+                    concepts: state.selectedModel.concepts,
+                    conceptId,
+                    field: 'preferredState',
+                    value,
+                }),
+            };
+            state.selectedModel = model;
+            state.models = updateModels(state.models, model);
         },
         selectScenario(state, action) {
             const { value } = action.payload;
@@ -115,13 +145,47 @@ const modelsSlice = createSlice({
             state.selectedModel = model;
             state.models = updateModels(state.models, model);
         },
-        deleteModel(state, action) {
-            const { field, value } = action.payload;
-            state[field] = value;
+        removeSelected(state) {
+            const { selectedId, selectedScenarioId, models } = state;
+            const modelIndex = models.findIndex((m) => m.appId === selectedId);
+            if (modelIndex === -1) {
+                return;
+            }
+            const model = models[modelIndex];
+
+            if (selectedScenarioId) {
+                // never remove the last scenario
+                if (model.scenarios.length <= 1) {
+                    return;
+                }
+                const { index } = parseScenarioId(selectedScenarioId);
+                const scenarios = model.scenarios.filter((_, i) => i !== Number(index));
+                const updatedModel = { ...model, scenarios };
+                const nextIndex = Math.min(Number(index), scenarios.length - 1);
+
+                state.models = updateModels(models, updatedModel);
+                state.selectedModel = updatedModel;
+                state.selectedScenario = scenarios[nextIndex];
+                state.selectedScenarioId = makeScenarioId(updatedModel.appId, scenarios[nextIndex].name, nextIndex);
+            } else {
+                // never remove the last model
+                if (models.length <= 1) {
+                    return;
+                }
+                const remaining = models.filter((_, i) => i !== modelIndex);
+                const nextIndex = Math.min(modelIndex, remaining.length - 1);
+                const nextModel = remaining[nextIndex];
+
+                state.models = remaining;
+                state.selectedId = nextModel.appId;
+                state.selectedModel = nextModel;
+                state.selectedScenarioId = '';
+                state.selectedScenario = null;
+            }
         },
     },
 });
 
-// export const { reset, setField, setInfluence, selectScenario, selectModel, addModel, changeModel, deleteModel } = modelsSlice.actions;
+// export const { reset, setField, setInfluence, selectScenario, selectModel, addModel, changeModel } = modelsSlice.actions;
 
 export default modelsSlice.reducer;

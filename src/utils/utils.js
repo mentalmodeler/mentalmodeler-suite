@@ -40,6 +40,7 @@ export const createModel = ({ appId, filename = 'Model', scenarioName = 'Scenari
         name: 'Model',
         version: '1.0',
         author: '',
+        description: '',
         id: makeUuid(),
         date: Date.now(),
     },

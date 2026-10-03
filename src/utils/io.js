@@ -14,6 +14,16 @@ export const createFileInput = ({ onchange = () => {}, props = {} }) => {
     return input;
 };
 
+export const downloadBlob = (blob, filename) => {
+    const link = document.createElement('a');
+    const url = window.URL.createObjectURL(blob);
+    link.download = filename;
+    link.href = url;
+    link.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }));
+    link.remove();
+    window.URL.revokeObjectURL(url);
+};
+
 const saveFile = (filename) => {
     const json = getJson(store);
     const blob = new Blob([json], { type: 'application/json' });

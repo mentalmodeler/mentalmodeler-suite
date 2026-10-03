@@ -21,6 +21,7 @@
         "lodash.debounce": "^4.0.8",
         "lodash.throttle": "^4.1.1",
         "mm-modules": "file:../mm-modules",
+        "papaparse": "^5.7.0",
         "prop-types": "^15.8.1",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
@@ -28,7 +29,8 @@
         "react-router-dom": "^6.16.0",
         "react-transition-group": "^4.4.5",
         "redux": "^4.2.1",
-        "redux-persist": "^6.0.0"
+        "redux-persist": "^6.0.0",
+        "write-excel-file": "^4.1.1"
     },
     "devDependencies": {
         "@types/react": "^18.2.15",

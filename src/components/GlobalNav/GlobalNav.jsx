@@ -1,15 +1,38 @@
 import { DeleteOutline, DescriptionOutlined, Download, PrintOutlined, SaveOutlined, Upload } from '@mui/icons-material';
 import { Box, Button, Typography } from '@mui/material';
+import Papa from 'papaparse';
+import writeExcelFile from 'write-excel-file/browser';
 import { Flex } from '../IFL/ifl';
-// import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { loadAndParse } from 'mm-modules';
-import { createFileInput } from '../../utils/io';
+import { createFileInput, downloadBlob } from '../../utils/io';
+import { getMatrixRows, toCompareRefModel } from '../../utils/utils';
+import { saveModelFromConceptMap } from '../../redux/actions/models';
 
 import { NavMenu } from './NavMenu';
-import { useDispatch } from 'react-redux';
 
 export const GlobalNav = () => {
     const dispatch = useDispatch();
+    const { selectedModel } = useSelector((state) => state.models) || {};
+    const { view } = useSelector((state) => state.app) || {};
+
+    const exportMatrix = async (extension) => {
+        dispatch(saveModelFromConceptMap(view));
+        const rows = getMatrixRows(selectedModel?.concepts);
+        const filename = `${selectedModel?.filename || 'model'}.${extension}`;
+        if (extension === 'xlsx') {
+            await writeExcelFile(rows).toFile(filename);
+        } else {
+            downloadBlob(new Blob([Papa.unparse(rows)], { type: 'text/csv' }), filename);
+        }
+    };
+
+    const saveCompareRef = () => {
+        dispatch(saveModelFromConceptMap(view));
+        const model = toCompareRefModel(selectedModel);
+        const filename = `${selectedModel?.filename || 'model'}_compare_ref.mmp`;
+        downloadBlob(new Blob([JSON.stringify(model)], { type: 'application/json' }), filename);
+    };
 
     const loadAndParseLocalModels = (e) => {
         const fileList = e?.target?.files;
@@ -21,6 +44,12 @@ export const GlobalNav = () => {
                     filename: f.name.split('.')[0],
                     ...(await loadAndParse(f)),
                 };
+
+                // loosely discourage loading a teacher's mm-compare answer key
+                // back into the modeling canvas
+                if (model.compareRef) {
+                    return;
+                }
 
                 dispatch({
                     type: 'models/addModel',
@@ -103,9 +132,7 @@ export const GlobalNav = () => {
                     label: 'Save Compare Ref',
                     id: 'savecompareref',
                     icon: <SaveOutlined />,
-                    action: () => {
-                        alert('Coming soon... Save compare ref mmp');
-                    },
+                    action: saveCompareRef,
                 },
             ],
         },
@@ -120,7 +147,7 @@ export const GlobalNav = () => {
                     id: 'exportcsv',
                     icon: <Upload />,
                     action: () => {
-                        alert('Coming soon... Export csv');
+                        exportMatrix('csv');
                     },
                 },
                 {
@@ -128,7 +155,7 @@ export const GlobalNav = () => {
                     id: 'exportxls',
                     icon: <Upload />,
                     action: () => {
-                        alert('Coming soon... Export xls');
+                        exportMatrix('xlsx');
                     },
                 },
             ],

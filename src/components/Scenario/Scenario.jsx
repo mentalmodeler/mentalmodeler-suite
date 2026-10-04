@@ -32,20 +32,26 @@ export const Scenario = () => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (!selectedScenario) {
+        if (!selectedScenario || !selectedScenarioId) {
             setResults([]);
             return undefined;
         }
         let cancelled = false;
         setLoading(true);
-        runScenarioCalculation({ model: selectedModel, scenario: selectedScenario, squashFunction }).then(
-            ({ results: newResults }) => {
+        runScenarioCalculation({ model: selectedModel, scenario: selectedScenario, squashFunction })
+            .then(({ results: newResults }) => {
                 if (!cancelled) {
                     setResults(newResults);
                     setLoading(false);
                 }
-            },
-        );
+            })
+            .catch((error) => {
+                console.error('runScenarioCalculation failed:', error);
+                if (!cancelled) {
+                    setResults([]);
+                    setLoading(false);
+                }
+            });
         return () => {
             cancelled = true;
         };
@@ -60,7 +66,11 @@ export const Scenario = () => {
     );
 
     const onNameChange = (e) => {
-        dispatch({ type: 'models/updateScenarioName', payload: { name: e.target.value } });
+        const name = e.target.value.trim();
+        if (!name) {
+            return;
+        }
+        dispatch({ type: 'models/updateScenarioName', payload: { name } });
     };
 
     const onOverrideChange = (conceptId, field, value) => {
@@ -71,7 +81,7 @@ export const Scenario = () => {
         });
     };
 
-    if (!selectedScenario) {
+    if (!selectedScenario || !selectedScenarioId) {
         return (
             <Box sx={{ padding: 2 }}>
                 <Typography variant="body2">Select a scenario from the sidebar to get started.</Typography>

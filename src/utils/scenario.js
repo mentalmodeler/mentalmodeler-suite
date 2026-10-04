@@ -1,8 +1,26 @@
 export const DEFAULT_SCENARIO_OVERRIDE = { selected: true, influence: 0 };
 
+// .mmp files (XML and some JSON) store these as strings ('True'/'False', '0', '0.5', ...),
+// not JS booleans/numbers -- coerce explicitly rather than relying on truthiness, which treats
+// the string '0' and 'False' as truthy.
+const toSelected = (value) => {
+    if (value === undefined) {
+        return DEFAULT_SCENARIO_OVERRIDE.selected;
+    }
+    if (typeof value === 'boolean') {
+        return value;
+    }
+    return value === 'True' || value === 'true';
+};
+
+const toInfluence = (value) => (value === undefined ? DEFAULT_SCENARIO_OVERRIDE.influence : parseFloat(value) || 0);
+
 export const getScenarioOverride = (scenario, conceptId) => {
     const override = (scenario?.concepts || []).find(({ id }) => id === conceptId);
-    return { ...DEFAULT_SCENARIO_OVERRIDE, ...override };
+    return {
+        selected: toSelected(override?.selected),
+        influence: toInfluence(override?.influence),
+    };
 };
 
 export const getPredictionScore = (concepts, scenario, results) => {

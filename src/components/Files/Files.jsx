@@ -119,13 +119,16 @@ export const Files = () => {
                                                     variant="scenario-add"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
+                                                        // flush the currently-live canvas into whichever model is
+                                                        // still selected *before* switching selectedModel away from
+                                                        // it, or the flush lands on the wrong model
+                                                        dispatch(saveModelFromConceptMap(view));
                                                         if (appId !== selectedId) {
                                                             dispatch({
                                                                 type: 'models/selectModel',
                                                                 payload: { value: appId },
                                                             });
                                                         }
-                                                        dispatch(saveModelFromConceptMap(view));
                                                         dispatch({
                                                             type: 'models/addScenario',
                                                             payload: { name: 'New Scenario' },

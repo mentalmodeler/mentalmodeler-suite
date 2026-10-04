@@ -9,6 +9,9 @@ const SQUASH_FUNCTIONS = {
 // JSON-shaped (squashFunction as a string, not a function reference) so a
 // future swap to a server-computed scenario only touches this function.
 export const runScenarioCalculation = async ({ model, scenario, squashFunction }) => {
+    if (!model.concepts || model.concepts.length === 0) {
+        return { results: [] };
+    }
     const clampFn = SQUASH_FUNCTIONS[squashFunction] || sigm;
     const scenarioConcepts = model.concepts.map((concept) => {
         const override = (scenario.concepts || []).find(({ id }) => id === concept.id);

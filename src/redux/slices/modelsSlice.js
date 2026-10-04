@@ -111,6 +111,7 @@ const modelsSlice = createSlice({
             const { value } = action.payload;
             state.selectedId = value;
             state.selectedScenarioId = '';
+            state.selectedScenario = null;
             state.selectedModel = state.models.find((model) => model.appId === value);
         },
         addModel(state, action) {
@@ -123,6 +124,7 @@ const modelsSlice = createSlice({
             state.models.push(model);
             // deselect scenarios
             state.selectedScenarioId = '';
+            state.selectedScenario = null;
             // set selected id
             state.selectedId = appId;
             // set selected model
@@ -185,7 +187,7 @@ const modelsSlice = createSlice({
         },
         addScenario(state, action) {
             const { name } = action.payload;
-            const scenarios = [...state.selectedModel.scenarios, { name, concepts: [] }];
+            const scenarios = [...(state.selectedModel.scenarios || []), { name, concepts: [] }];
             const model = { ...state.selectedModel, scenarios };
             const index = scenarios.length - 1;
 
@@ -198,7 +200,10 @@ const modelsSlice = createSlice({
             const { name } = action.payload;
             const { index } = parseScenarioId(state.selectedScenarioId);
             const scenarioIndex = Number(index);
-            const scenarios = state.selectedModel.scenarios.map((scenario, i) =>
+            if (Number.isNaN(scenarioIndex)) {
+                return;
+            }
+            const scenarios = (state.selectedModel.scenarios || []).map((scenario, i) =>
                 i === scenarioIndex ? { ...scenario, name } : scenario,
             );
             const model = { ...state.selectedModel, scenarios };
@@ -206,12 +211,16 @@ const modelsSlice = createSlice({
             state.selectedModel = model;
             state.models = updateModels(state.models, model);
             state.selectedScenario = scenarios[scenarioIndex];
+            state.selectedScenarioId = makeScenarioId(model.appId, name, scenarioIndex);
         },
         setScenarioConceptOverride(state, action) {
             const { conceptId, selected, influence } = action.payload;
             const { index } = parseScenarioId(state.selectedScenarioId);
             const scenarioIndex = Number(index);
-            const scenarios = state.selectedModel.scenarios.map((scenario, i) => {
+            if (Number.isNaN(scenarioIndex)) {
+                return;
+            }
+            const scenarios = (state.selectedModel.scenarios || []).map((scenario, i) => {
                 if (i !== scenarioIndex) {
                     return scenario;
                 }

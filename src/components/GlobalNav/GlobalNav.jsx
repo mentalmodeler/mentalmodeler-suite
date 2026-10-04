@@ -4,7 +4,7 @@ import Papa from 'papaparse';
 import writeExcelFile from 'write-excel-file/browser';
 import { Flex } from '../IFL/ifl';
 import { useDispatch, useSelector } from 'react-redux';
-import { loadAndParse } from 'mm-modules';
+import { importCSV, loadAndParse } from 'mm-modules';
 import { createFileInput, downloadBlob } from '../../utils/io';
 import { getMatrixRows, toCompareRefModel } from '../../utils/utils';
 import { saveModelFromConceptMap } from '../../redux/actions/models';
@@ -62,6 +62,34 @@ export const GlobalNav = () => {
         );
     };
 
+    const importLocalCSV = (e) => {
+        const fileList = e?.target?.files;
+        if (!fileList || fileList.length === 0) {
+            return;
+        }
+        Array.from(fileList).forEach((f) => {
+            Papa.parse(f, {
+                complete: ({ data, errors }) => {
+                    if (errors.length) {
+                        console.error(errors);
+                        alert('Import CSV failed! Check the browser console for details.');
+                        return;
+                    }
+                    dispatch({
+                        type: 'models/addModel',
+                        payload: {
+                            field: '',
+                            value: {
+                                filename: f.name.split('.')[0],
+                                ...importCSV(data),
+                            },
+                        },
+                    });
+                },
+            });
+        });
+    };
+
     const navItems = [
         {
             type: 'button',
@@ -100,7 +128,10 @@ export const GlobalNav = () => {
                     id: 'importcsv',
                     icon: <Download />,
                     action: () => {
-                        alert('Coming soon... Import csv');
+                        const input = createFileInput({
+                            onchange: (e) => importLocalCSV(e),
+                        });
+                        input.click();
                     },
                 },
             ],

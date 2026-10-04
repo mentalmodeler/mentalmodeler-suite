@@ -5,6 +5,7 @@ import { ConceptMap } from '../ConceptMap/ConceptMap';
 import { Matrix } from '../Matrix/Matrix';
 import { Info } from '../Info/Info';
 import { Metrics } from '../Metrics/Metrics';
+import { Scenario } from '../Scenario/Scenario';
 
 export const Content = () => {
     const { view } = useSelector((state) => state.app) || {};
@@ -22,6 +23,7 @@ export const Content = () => {
                 {view === APP_VIEW.MATRIX && <Matrix />}
                 {view === APP_VIEW.INFO && <Info />}
                 {view === APP_VIEW.METRICS && <Metrics />}
+                {view === APP_VIEW.SCENARIO && <Scenario />}
             </Box>
         </Box>
     );

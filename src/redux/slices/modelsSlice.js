@@ -2,7 +2,7 @@
 // NOTE: using Immer to manage state (included as middleware)
 // https://immerjs.github.io/immer/docs/introduction
 import { createSlice } from '@reduxjs/toolkit';
-import { createModel, makeAppId, makeScenarioId, parseScenarioId } from '../../utils/utils';
+import { createModel, makeAppId, makeScenarioId, parseScenarioId } from '../../utils/utils.js';
 
 const updateInfluence = ({ concepts, influencerId, influenceeId, influence }) =>
     concepts.map((concept) => {
@@ -182,6 +182,50 @@ const modelsSlice = createSlice({
                 state.selectedScenarioId = '';
                 state.selectedScenario = null;
             }
+        },
+        addScenario(state, action) {
+            const { name } = action.payload;
+            const scenarios = [...state.selectedModel.scenarios, { name, concepts: [] }];
+            const model = { ...state.selectedModel, scenarios };
+            const index = scenarios.length - 1;
+
+            state.selectedModel = model;
+            state.models = updateModels(state.models, model);
+            state.selectedScenarioId = makeScenarioId(model.appId, name, index);
+            state.selectedScenario = scenarios[index];
+        },
+        updateScenarioName(state, action) {
+            const { name } = action.payload;
+            const { index } = parseScenarioId(state.selectedScenarioId);
+            const scenarioIndex = Number(index);
+            const scenarios = state.selectedModel.scenarios.map((scenario, i) =>
+                i === scenarioIndex ? { ...scenario, name } : scenario,
+            );
+            const model = { ...state.selectedModel, scenarios };
+
+            state.selectedModel = model;
+            state.models = updateModels(state.models, model);
+            state.selectedScenario = scenarios[scenarioIndex];
+        },
+        setScenarioConceptOverride(state, action) {
+            const { conceptId, selected, influence } = action.payload;
+            const { index } = parseScenarioId(state.selectedScenarioId);
+            const scenarioIndex = Number(index);
+            const scenarios = state.selectedModel.scenarios.map((scenario, i) => {
+                if (i !== scenarioIndex) {
+                    return scenario;
+                }
+                const exists = scenario.concepts.some(({ id }) => id === conceptId);
+                const concepts = exists
+                    ? scenario.concepts.map((c) => (c.id === conceptId ? { id: conceptId, selected, influence } : c))
+                    : [...scenario.concepts, { id: conceptId, selected, influence }];
+                return { ...scenario, concepts };
+            });
+            const model = { ...state.selectedModel, scenarios };
+
+            state.selectedModel = model;
+            state.models = updateModels(state.models, model);
+            state.selectedScenario = scenarios[scenarioIndex];
         },
     },
 });

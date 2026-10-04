@@ -119,7 +119,21 @@ export const Files = () => {
                                                     variant="scenario-add"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        alert('Coming soon: Add a scenario');
+                                                        if (appId !== selectedId) {
+                                                            dispatch({
+                                                                type: 'models/selectModel',
+                                                                payload: { value: appId },
+                                                            });
+                                                        }
+                                                        dispatch(saveModelFromConceptMap(view));
+                                                        dispatch({
+                                                            type: 'models/addScenario',
+                                                            payload: { name: 'New Scenario' },
+                                                        });
+                                                        dispatch({
+                                                            type: 'app/setField',
+                                                            payload: { field: 'view', value: APP_VIEW.SCENARIO },
+                                                        });
                                                     }}
                                                     onKeyDown={(e) => {
                                                         e.stopPropagation();

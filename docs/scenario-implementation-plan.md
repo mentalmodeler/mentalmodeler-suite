@@ -184,16 +184,37 @@ Minors were deferred (not fixed) — noted below for later.
   field starts blank by design (placeholder-only), but the blur handler dispatched whatever was
   there unconditionally. Fix: skip the dispatch when the trimmed value is empty.
 
+### Fixed after review — clamp range (commit `38b94b4`)
+
+- **Clamp input didn't enforce the -1..1 range.** Originally deferred as Minor, then fixed.
+  The `+/-` column's number input has `min="-1"`/`max="1"` HTML attributes, but those only matter
+  for built-in browser form validation, which nothing here triggers — they didn't stop the value
+  from being accepted. The blur handler just did `parseFloat(value) || 0`, no clamping. Typing
+  e.g. `50` fed a raw `50` straight into the simulation as that concept's locked value.
+  Fix: added `normalize(value, min = -1, max = 1)` to `src/utils/utils.js`, matching
+  `mentalmodeler-js`'s `src/utils/util.js` `normalize()` exactly (same name, signature, and
+  defaults — that's where influence values are normalized on blur in the concept-map editor
+  itself). Wired into both `Scenario.jsx`'s clamp input and `Matrix.jsx`'s influence input (same
+  -1..1 range, same gap existed there too).
+- **While verifying the `Matrix.jsx` half of that fix, found the Matrix tab's influence editing
+  has never actually written to the store, for two separate, pre-existing reasons** — not
+  introduced this session, and not inherited from the legacy Backbone app (checked; this is new
+  code written earlier in this port). Both fixed together in the same commit:
+  - `modelsSlice.js`'s `setInfluence` reducer destructured `InfluenceeId` (capital I) from the
+    action payload, which only ever has `influenceeId` (lowercase) — so it was always
+    `undefined`, and `updateInfluence`'s relationship lookup never matched anything.
+  - Separately, `Matrix.jsx`'s `onBlur` call passed influencer/influencee **swapped** relative to
+    how `findRelationship` reads them for display (row = influencer, column = influencee on
+    read; the write had column as influencer, row as influencee). Fixing only the typo above
+    would have made edits start writing successfully — just to the transposed (wrong)
+    relationship instead of silently doing nothing.
+  - Found by reading the live Redux store directly (via the React fiber tree) rather than
+    trusting the Matrix table's own display — its inputs are uncontrolled and never reflect the
+    stored value back after a dispatch, so the UI looked unchanged either way regardless of what
+    the store actually held.
+
 ### Deferred — Minor (not fixed, noted for later)
 
-- **Clamp input doesn't enforce the -1..1 range.** The `+/-` column's number input has
-  `min="-1"`/`max="1"` HTML attributes, but those only matter for built-in browser form
-  validation, which nothing here triggers — they don't stop the value from being accepted. The
-  blur handler just does `parseFloat(value) || 0`, no clamping. Typing e.g. `50` into that field
-  feeds a raw `50` straight into the simulation as that concept's locked value — not run through
-  the sigmoid/tanh squashing that normally keeps values bounded, so the result is numerically
-  meaningless with no indication anything went wrong. Not a crash, just silent garbage-in on a
-  fat-fingered value. Fix would be clamping the parsed value to `[-1, 1]` before dispatching.
 - **Duplicate concept names can produce a wrong prediction score.**
   `mm-modules.runScenario` (pre-existing math, not touched by this plan) excludes clamped
   concepts from its results by matching normalized *name*, not id. If two concepts share a name

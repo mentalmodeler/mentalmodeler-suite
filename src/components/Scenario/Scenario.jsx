@@ -16,6 +16,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { evenRowCellStyle, oddRowCellStyle, topHeaderCellStyle } from '../../constants/styles';
 import { getPredictionScore, getScenarioOverride } from '../../utils/scenario';
+import { normalize } from '../../utils/utils';
 import { runScenarioCalculation } from '../../services/scenarioEngine';
 
 const SQUASH_FUNCTIONS = [
@@ -148,13 +149,14 @@ export const Scenario = () => {
                                             max="1"
                                             step="0.01"
                                             defaultValue={influence || ''}
-                                            onBlur={(e) =>
+                                            onBlur={(e) => {
+                                                const parsed = parseFloat(e.target.value);
                                                 onOverrideChange(
                                                     concept.id,
                                                     'influence',
-                                                    parseFloat(e.target.value) || 0,
-                                                )
-                                            }
+                                                    isNaN(parsed) ? 0 : normalize(parsed),
+                                                );
+                                            }}
                                             sx={{ width: '100%' }}
                                         />
                                     </TableCell>

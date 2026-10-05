@@ -1,6 +1,6 @@
 import { Table, TableContainer, TableHead, TableRow, TableCell, TableBody, Box, alpha } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { findRelationship } from '../../utils/utils';
+import { findRelationship, normalize } from '../../utils/utils';
 import { useEffect, useRef } from 'react';
 import { useTheme } from '@emotion/react';
 import { evenRowCellStyle, oddRowCellStyle, sideHeaderCellStyle, topHeaderCellStyle } from '../../constants/styles';
@@ -13,11 +13,13 @@ export const Matrix = () => {
     const tableRef = useRef(null);
 
     const onBlur = (e, influencerId, influenceeId) => {
-        console.log('e.target.value:', e.target.value);
+        const raw = e.target.value;
+        const parsed = parseFloat(raw);
+        const influence = isNaN(parsed) ? raw : normalize(parsed);
         dispatch({
             type: 'models/setInfluence',
             payload: {
-                influence: e.target.value,
+                influence,
                 influencerId,
                 influenceeId,
             },
@@ -116,7 +118,7 @@ export const Matrix = () => {
                                                     },
                                                 }}
                                                 defaultValue={influence}
-                                                onBlur={(e) => onBlur(e, _concept.id, concept.id)}
+                                                onBlur={(e) => onBlur(e, concept.id, _concept.id)}
                                             />
                                         </TableCell>
                                     );

@@ -48,14 +48,14 @@ const modelsSlice = createSlice({
             Object.assign(state, initialState);
         },
         setInfluence(state, action) {
-            const { influencerId, InfluenceeId, influence } = action.payload;
+            const { influencerId, influenceeId, influence } = action.payload;
             console.log('setInfluence, influence:', influence);
             const model = {
                 ...state.selectedModel,
                 concepts: updateInfluence({
                     concepts: state.selectedModel.concepts,
                     influencerId,
-                    InfluenceeId,
+                    influenceeId,
                     influence,
                 }),
                 info: {

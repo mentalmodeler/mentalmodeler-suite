@@ -61,6 +61,10 @@ export const createModel = ({ appId, filename = 'Model', scenarioName = 'Scenari
 
 export const isEmpty = (value) => value.trim() === '';
 
+// Matches mentalmodeler-js's src/utils/util.js normalize() exactly (name, signature, defaults) —
+// that's where influence values are normalized on blur in the concept-map editor itself.
+export const normalize = (value, min = -1, max = 1) => Math.max(Math.min(value, max), min);
+
 export const getMatrixRows = (concepts = []) => [
     ['', ...concepts.map(({ name }) => name)],
     ...concepts.map((concept) => [

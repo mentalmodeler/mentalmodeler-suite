@@ -126,3 +126,83 @@ State updates and the prediction score reflects selected/unclamped/preferred-sta
 correctly; verify Add Scenario, scenario rename, and squash-function switching; confirm removing
 a concept from the model doesn't orphan/crash on a scenario that had an override for it (the
 sparse-overrides design should make this a non-issue, but worth confirming directly).
+
+## Post-implementation review (2026-10-04)
+
+After Pass 1 was built, committed, and manually verified, a fresh-context review (no memory of
+the build) checked the whole branch against this spec and the implementation plan's own "Review
+Focus" list. It found 11 real, reproduced findings — 3 Critical, 4 Important, 4 Minor. All
+Critical/Important were fixed in one follow-up pass (commit `87bd5ac`), each verified by
+reproducing the failure first, then confirming the fix, then re-confirming live in the browser.
+Minors were deferred (not fixed) — noted below for later.
+
+### Fixed — Critical
+
+- **Add Scenario on a model you weren't viewing overwrote its concepts**
+  (`src/components/Files/Files.jsx`). The click handler dispatched `models/selectModel` *before*
+  `saveModelFromConceptMap`, which flushes whatever's live on the Model-tab canvas into
+  `selectedModel`. Since `selectedModel` had already switched to the clicked row's model, the
+  *previous* model's canvas got written into the new one — silent data loss. Fix: flush first,
+  then select.
+- **Switching models while a scenario was selected left the Scenario tab showing stale,
+  mismatched data** (`src/redux/slices/modelsSlice.js`). `selectModel`/`addModel` cleared
+  `selectedScenarioId` but not `selectedScenario`, and the component's "is a scenario selected?"
+  guard only checked `selectedScenario`. Result: the tab could render one model's scenario
+  against a *different*, now-selected model's concepts, and any edit would silently vanish (the
+  reducers key off `selectedScenarioId`, which was already empty). Fix: clear both together; also
+  added `NaN`-index guards to `updateScenarioName`/`setScenarioConceptOverride` and tightened the
+  component's guard to require both fields, as defense in depth.
+- **`.mmp` file data wasn't type-coerced, so loaded scenario overrides displayed backwards**
+  (`src/utils/scenario.js`). Values read from a `.mmp` file are strings (`influence: '0'`,
+  `selected: 'False'`), and the code used plain JS truthiness: the string `'0'` is truthy, so a
+  concept explicitly clamped to *zero* displayed as clamped (should be the opposite — zero means
+  "not clamped"); `'False'` is truthy, so an unselected concept rendered as a checked checkbox
+  and got counted in the prediction score. This isn't a hypothetical — two shipped sample files
+  exercise it (`fish_wetland_mod2.mmp` has an all-zero-string scenario; `fire_model.mmp` has an
+  explicit `selected: False`). Fix: `getScenarioOverride` now coerces explicitly (string
+  `'True'`/`'true'` → `true`, everything else → `false`; `parseFloat(influence) || 0`), matching
+  legacy's own coercion rules.
+
+### Fixed — Important
+
+- **A brand-new model (zero concepts) crashed the compute step.** `runScenarioCalculation` called
+  into `mm-modules.runScenario`, which threw ("cannot multiply two empty vectors") on an empty
+  concepts array — the app's actual default state right after clicking New. Fix: short-circuit to
+  `{ results: [] }` when there are no concepts.
+- **No error handling on the compute call** — any rejection (including the one above, before it
+  was fixed) left the tab stuck on "State Prediction: …" forever, since nothing ever cleared the
+  loading flag. Fix: added a `.catch` that clears loading and logs the error.
+- **Three reducers assumed every model has a `scenarios` array.** A shipped sample
+  (`simple_js.mmp`) has no `scenarios` key at all, so `addScenario` (and the other two) threw the
+  moment you clicked Add. Fix: default to `[]` in all three.
+- **Renaming a scenario desynced it from the sidebar.** Scenario ids embed the name
+  (`${appId}::${name}::${index}`), but `updateScenarioName` only updated the name, not
+  `selectedScenarioId` — so after a rename, the sidebar tree's item id no longer matched the
+  stored selection id, and the highlight disappeared even though you were still editing that
+  scenario. Fix: regenerate the id alongside the name.
+- **Blurring the (empty) name field right after clicking Add renamed the scenario to `''`.** The
+  field starts blank by design (placeholder-only), but the blur handler dispatched whatever was
+  there unconditionally. Fix: skip the dispatch when the trimmed value is empty.
+
+### Deferred — Minor (not fixed, noted for later)
+
+- **Clamp input doesn't enforce the -1..1 range.** The `+/-` column's number input has
+  `min="-1"`/`max="1"` HTML attributes, but those only matter for built-in browser form
+  validation, which nothing here triggers — they don't stop the value from being accepted. The
+  blur handler just does `parseFloat(value) || 0`, no clamping. Typing e.g. `50` into that field
+  feeds a raw `50` straight into the simulation as that concept's locked value — not run through
+  the sigmoid/tanh squashing that normally keeps values bounded, so the result is numerically
+  meaningless with no indication anything went wrong. Not a crash, just silent garbage-in on a
+  fat-fingered value. Fix would be clamping the parsed value to `[-1, 1]` before dispatching.
+- **Duplicate concept names can produce a wrong prediction score.**
+  `mm-modules.runScenario` (pre-existing math, not touched by this plan) excludes clamped
+  concepts from its results by matching normalized *name*, not id. If two concepts share a name
+  and only one is clamped, the other can be silently dropped from the results — it'll show a
+  blank Actual State and get scored as "incorrect" even though it was never actually computed.
+  Root cause is in `mm-modules`, out of this plan's scope; flagged here since it's reachable from
+  this tab.
+- **No loading affordance on the table itself.** The only pending-state indicator is the `…` that
+  replaces the prediction percentage while a computation is in flight — the clamp table doesn't
+  visually indicate "stale, recomputing." Harmless today since local computation is near-instant;
+  will matter more once the compute-boundary seam (section 2 above) is ever pointed at a real
+  network call.

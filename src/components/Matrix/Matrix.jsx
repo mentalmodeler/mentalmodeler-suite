@@ -1,9 +1,10 @@
-import { Table, TableContainer, TableHead, TableRow, TableCell, TableBody, Box, alpha } from '@mui/material';
+import { Table, TableContainer, TableHead, TableRow, TableCell, TableBody, alpha } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { findRelationship, normalize } from '../../utils/utils';
+import { findRelationship } from '../../utils/utils';
 import { useEffect, useRef } from 'react';
 import { useTheme } from '@emotion/react';
 import { evenRowCellStyle, oddRowCellStyle, sideHeaderCellStyle, topHeaderCellStyle } from '../../constants/styles';
+import { NormalizedNumberInput } from '../NormalizedNumberInput/NormalizedNumberInput';
 
 export const Matrix = () => {
     const { selectedModel } = useSelector((state) => state.models) || {};
@@ -12,10 +13,7 @@ export const Matrix = () => {
     const theme = useTheme();
     const tableRef = useRef(null);
 
-    const onBlur = (e, influencerId, influenceeId) => {
-        const raw = e.target.value;
-        const parsed = parseFloat(raw);
-        const influence = isNaN(parsed) ? raw : normalize(parsed);
+    const onCommit = (influencerId, influenceeId, influence) => {
         dispatch({
             type: 'models/setInfluence',
             payload: {
@@ -93,14 +91,11 @@ export const Matrix = () => {
                                             }}
                                             aria-label={`${concept.name} influences ${_concept.name} ${influence}`}
                                         >
-                                            <Box
-                                                component="input"
-                                                id={`${concept.id}-${concept.id}-input`}
-                                                size="small"
-                                                type="number"
-                                                min="-1"
-                                                max="1"
-                                                step="0.01"
+                                            <NormalizedNumberInput
+                                                id={`${concept.id}-${_concept.id}-input`}
+                                                value={influence}
+                                                emptyValue=""
+                                                onCommit={(val) => onCommit(concept.id, _concept.id, val)}
                                                 sx={{
                                                     textAlign: 'center',
                                                     position: 'relative',
@@ -112,13 +107,10 @@ export const Matrix = () => {
                                                     width: '100%',
                                                     fontSize: '1rem',
                                                     '&:focus': {
-                                                        // backgroundColor: alpha(theme.palette.tabs.matrix, 0.2),
                                                         outline: `2px solid ${theme.palette.tabs.matrix}`,
                                                         zIndex: 5,
                                                     },
                                                 }}
-                                                defaultValue={influence}
-                                                onBlur={(e) => onBlur(e, concept.id, _concept.id)}
                                             />
                                         </TableCell>
                                     );

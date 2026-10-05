@@ -212,6 +212,26 @@ Minors were deferred (not fixed) — noted below for later.
     trusting the Matrix table's own display — its inputs are uncontrolled and never reflect the
     stored value back after a dispatch, so the UI looked unchanged either way regardless of what
     the store actually held.
+- **Follow-up (commit `80ea049`): the clamp fix above left a real UX gap** — the inputs were
+  still uncontrolled (`defaultValue`), so after a clamp actually kicked in, the box could keep
+  showing what was *typed* (`50`) forever while the *stored* value was something different
+  (`1`), with no visual indication a transformation happened. Rather than patch around it (e.g.
+  manually setting `e.target.value` in the blur handler), switched both inputs to a proper
+  controlled pattern: a new shared `NormalizedNumberInput` component
+  (`src/components/NormalizedNumberInput`) controlled by **local component state** — `onChange`
+  updates local state every keystroke (cheap, no Redux dispatch per character, avoids the
+  classic controlled-number-input problem of fighting the user mid-type on `-`/`0.`
+  intermediate states), and only `onBlur` computes the normalized value, updates local state to
+  match it, and commits via `onCommit`. This mirrors `mentalmodeler-js`'s own
+  `RelationshipValueDisplay.js` (`tempInfluenceTextValue`), which already uses exactly this
+  pattern for the same kind of input in the concept-map editor — not a new approach invented for
+  this port. A `useEffect` resyncs local state from the `value` prop, so switching
+  models/scenarios without unmounting the component still shows the right value; this also let
+  `Scenario.jsx` drop the `key={selectedScenarioId}` remount workaround on its clamp input, since
+  the input now properly re-derives from its own `value` prop instead of needing to be torn down
+  and rebuilt. Also fixed a duplicate-DOM-id bug noticed while touching this code: every cell in
+  a Matrix row shared the id `${concept.id}-${concept.id}-input` (the row's own id used twice)
+  instead of including the column's id too.
 
 ### Deferred — Minor (not fixed, noted for later)
 

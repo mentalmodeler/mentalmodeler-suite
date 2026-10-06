@@ -53,10 +53,13 @@ Repo: `mentalmodeler/mentalmodeler-js` (CRA 1.x, `react-scripts@1.1.5`).
   instead of Simple.
 - Usage: `https://mentalmodeler.github.io/mentalmodeler-js/?demo`
 
-Note: `-suite` has its own, *unrelated* `?init` param
-(`src/App.jsx:38`) that fetches an arbitrary model URL into `-suite`'s own
-file browser/Redux store via `mm-modules`' `loadAndParseURL`. Different app,
-different mechanism, not affected by the `-js` rename.
+Note: `-suite` has its own `?demo` param (`src/App.jsx:38`, renamed from
+`?init` on 2026-10-06 to match this convention) that fetches a model URL
+into `-suite`'s own file browser/Redux store via `mm-modules`'
+`loadAndParseURL` — defaults to `fire_model.mmp` if no value given, or
+`?demo=<url>` to load something else. Different app, different mechanism
+(no `dev`/`standalone` gating, no hostname check) — same *name*, not the
+same code path, so don't assume a fix to one applies to the other.
 
 ## 3. How `mentalmodeler-js` gets vendored into `mentalmodeler-suite`
 

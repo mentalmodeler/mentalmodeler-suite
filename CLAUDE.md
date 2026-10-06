@@ -35,7 +35,7 @@ Because `window.MentalModelerConceptMap` only exists once that script runs, any 
 
 ### App shell layout
 
-`src/App.jsx` lays out a CSS grid (`GlobalNav`, `FilesHeader`, `Files`, `Tabs`, `Content`) plus two dialogs (`AddDialog`, `SaveDialog`). On mount, if the URL has an `?init=<url>` query param, it loads that `.mmp` URL (or a default sample model) via `mm-modules`' `loadAndParseURL` and adds it to Redux as a new model — this is how the app is deep-linked into a specific model.
+`src/App.jsx` lays out a CSS grid (`GlobalNav`, `FilesHeader`, `Files`, `Tabs`, `Content`) plus two dialogs (`AddDialog`, `SaveDialog`). On mount, if the URL has a `?demo=<url>` query param, it loads that `.mmp` URL (or a default sample model, `fire_model.mmp`, if no value given) via `mm-modules`' `loadAndParseURL` and adds it to Redux as a new model — this is how the app is deep-linked into a specific model. Named to match `mentalmodeler-js`'s own `?demo` flag, but it's a separate, unrelated mechanism — see `docs/mentalmodeler-js-deploy-and-vendoring.md`.
 
 - **`Files`** (left rail) lists open models and their scenarios in a tree view; selecting one dispatches `saveModelFromConceptMap` (flushes the current canvas into Redux) before switching `selectedId`/`selectedScenarioId`.
 - **`Tabs`** switches `app.view` between `APP_VIEW.MODEL | MATRIX | METRICS | SCENARIO | INFO` (see `src/redux/slices/appSlice.js`). Only `MODEL` and `MATRIX` are currently wired to real content in `Content.jsx`; `METRICS`/`SCENARIO`/`INFO` are tab stops with no view yet.

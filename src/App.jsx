@@ -35,9 +35,9 @@ const App = () => {
         }
         isMounted.current = true;
         const searchParams = new URLSearchParams(window.location.search);
-        if (searchParams.has('init')) {
+        if (searchParams.has('demo')) {
             const loadInitFile = async () => {
-                const _url = searchParams.get('init');
+                const _url = searchParams.get('demo');
                 const altUrl = '/models/fire_model.mmp';
                 // const altUrl = '/models/fish_wetland_ozesmi.json.mmp';
                 const url = _url ? _url : altUrl;

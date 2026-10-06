@@ -99,7 +99,10 @@ export const Metrics = () => {
     };
 
     return (
-        <Box sx={{ display: 'grid', gridTemplateColumns: '16rem 1fr', height: '100%', overflow: 'hidden' }}>
+        <Box
+            id="metricsPanel"
+            sx={{ display: 'grid', gridTemplateColumns: '16rem 1fr', height: '100%', overflow: 'hidden' }}
+        >
             <Box sx={{ padding: 2, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                 {STAT_TILES.map(({ key, label }) => (
                     <Box key={key} sx={{ border: '1px solid', borderColor: 'bg.light' }}>

@@ -91,7 +91,10 @@ export const Scenario = () => {
     }
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, padding: 2, height: '100%', overflow: 'hidden' }}>
+        <Box
+            id="scenarioPanel"
+            sx={{ display: 'flex', flexDirection: 'column', gap: 2, padding: 2, height: '100%', overflow: 'hidden' }}
+        >
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
                 <TextField
                     key={selectedScenarioId}

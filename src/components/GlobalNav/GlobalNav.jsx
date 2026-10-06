@@ -8,6 +8,7 @@ import { importCSV, loadAndParse } from 'mm-modules';
 import { createFileInput, downloadBlob } from '../../utils/io';
 import { getMatrixRows, toCompareRefModel } from '../../utils/utils';
 import { saveModelFromConceptMap } from '../../redux/actions/models';
+import { printModel } from '../../services/print';
 
 import { NavMenu } from './NavMenu';
 
@@ -206,7 +207,8 @@ export const GlobalNav = () => {
             id: 'print',
             icon: <PrintOutlined />,
             action: () => {
-                alert('print');
+                dispatch(saveModelFromConceptMap(view));
+                printModel();
             },
         },
     ];

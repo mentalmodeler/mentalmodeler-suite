@@ -61,6 +61,7 @@ const App = () => {
     return (
         <>
             <Box
+                id="app"
                 sx={{
                     height: '100vh',
                     overflow: 'auto',
@@ -83,6 +84,7 @@ const App = () => {
             </Box>
             <AddDialog />
             <SaveDialog />
+            <Box id="printArea" />
         </>
     );
 };

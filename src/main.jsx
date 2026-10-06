@@ -7,6 +7,11 @@ import store, { persistor } from './redux/data/store';
 import './index.css';
 import { GlobalStyles, ThemeProvider } from '@mui/material';
 import { theme } from './constants/theme.js';
+import html2canvas from 'html2canvas';
+
+// the embedded mentalmodeler-js bundle's own window.MentalModelerConceptMap.screenshot()
+// also expects this global - without it, that screenshot API silently fails too
+window.html2canvas = html2canvas;
 
 console.log('theme:', theme);
 
@@ -32,6 +37,28 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                     '.filter-view-control > ul': {
                         padding: 0,
                         paddingBlockEnd: theme.spacing(1),
+                    },
+                    '@media print': {
+                        '#app, .mm-print-overlay': {
+                            display: 'none',
+                        },
+                        '@page': {
+                            size: 'landscape',
+                            margin: '0.5cm',
+                        },
+                        '.no-break': {
+                            display: 'block',
+                            breakBefore: 'always',
+                            breakInside: 'avoid',
+                        },
+                    },
+                    '#printArea': {
+                        display: 'none',
+                    },
+                    '.printable': {
+                        height: 'unset !important',
+                        overflow: 'visible !important',
+                        width: '100% !important',
                     },
                     // '.router-link': {
                     //     textDecoration: 'none',

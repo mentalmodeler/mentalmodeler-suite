@@ -122,20 +122,40 @@ exposing `{render, load, save, screenshot}` (defined in `-js`'s
   started.
 - Old `docs/` folder on `-js`'s `master` (previously used for its GitHub
   Pages deploy) — not yet cleaned up.
-- `-suite`'s own GitHub Pages deploy — not yet set up. Assessed `gh-pages`
-  npm package as a good fit (same approach as `-js`), with three things to
-  handle first:
-  1. `vite.config.js` currently hardcodes `base: '/'` for production —
-     needs to become the repo subpath (e.g. `/mentalmodeler-suite/`) or
-     assets will 404 on GitHub Pages, same issue CRA's `homepage: "."`
-     solves for `-js`.
-  2. Verify (don't assume) that Vite's HTML transform correctly rewrites
-     the hardcoded absolute `/libs/conceptmap/...` and favicon paths in
-     `index.html` once `base` is set to a subpath.
-  3. No client-side router currently in use in `-suite` (despite
-     `react-router-dom` being a dependency — no `<BrowserRouter>` found in
-     `src`), so no SPA 404-fallback trick is needed for Pages.
-  4. Also note: `mm-modules` is linked via `file:../mm-modules`, which is
-     fine for a locally-built-then-pushed `gh-pages` deploy, but would
-     break if the build ever moves into a GitHub Actions runner (sibling
-     repo wouldn't be checked out there).
+- `-suite`'s own GitHub Pages deploy — config done (2026-10-07), same
+  `gh-pages` npm package approach as `-js`; the actual first deploy and the
+  GitHub repo's Pages-source switch haven't been run yet (external/live
+  changes, held for explicit go-ahead). What's in place:
+  1. `vite.config.js`'s `base` is now `/mentalmodeler-suite/` in production
+     (matching the repo name, since Pages project sites serve from
+     `https://<org>.github.io/<repo>/`), `/` in dev.
+  2. **Verified, not assumed**: built with that subpath `base` and served
+     the output via `vite preview` (which also serves from `base`). Vite's
+     HTML transform does correctly rewrite every root-absolute path in
+     `index.html` — favicon, both `libs/conceptmap/...` `<link>`/`<script>`
+     tags, and the bundled JS/CSS — to `/mentalmodeler-suite/...`, with no
+     manual edits needed.
+  3. That same verification pass caught a **real bug**, not a config gap:
+     `App.jsx`'s `?demo` loader `fetch()`-ed a hardcoded `/models/fire_model.mmp`.
+     Unlike the HTML `href`/`src` attributes above, a runtime `fetch()` string
+     literal is never touched by Vite's build-time rewriting, so under the
+     subpath build this 404'd — the 404 page's HTML then got fed into the MMP
+     JSON parser (`SyntaxError: Unexpected token '<', "<!DOCTYPE "...`). Fixed
+     by building the URL from `import.meta.env.BASE_URL` (Vite's runtime read
+     of the same `base` config) instead of a bare `/`-prefixed string.
+     Grepped for other hardcoded root-absolute runtime paths in `src/` — this
+     was the only one.
+  4. `gh-pages` added as a devDependency (`predeploy`/`deploy` npm scripts,
+     same shape as `-js`'s). Audited: one new high-severity advisory
+     (`braces`, nested under `gh-pages`'s own `globby`/`fast-glob` chain) —
+     same low-risk class already accepted for `-suite`'s `@typescript-eslint`
+     dev chain (stack-exhaustion DoS needs an attacker-controlled glob
+     pattern; `gh-pages` only ever globs the local `dist/` output it just
+     built, dev-only, never shipped).
+  5. No client-side router in use in `-suite` (confirmed `react-router-dom`
+     is gone entirely as of the npm-audit cleanup — no `<BrowserRouter>` was
+     ever added), so no SPA 404-fallback trick is needed for Pages.
+  6. Still true: `mm-modules` is linked via `file:../mm-modules`, fine for a
+     locally-built-then-pushed `gh-pages` deploy, but would break if the
+     build ever moves into a GitHub Actions runner (sibling repo wouldn't be
+     checked out there).

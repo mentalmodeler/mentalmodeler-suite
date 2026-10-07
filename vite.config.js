@@ -7,7 +7,7 @@ export default ({ mode }) => {
 
     //const base = mode === 'production' ? `/apps/6556ac2782f1945f9e66d7e0` : '/';
     // const base = mode === 'production' ? `/apps/jelbom-playground/` : '/';
-    const base = mode === 'production' ? `/` : '/';
+    const base = mode === 'production' ? `/mentalmodeler-suite/` : '/';
 
     return defineConfig({
         base,

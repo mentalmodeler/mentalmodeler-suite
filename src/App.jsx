@@ -38,7 +38,11 @@ const App = () => {
         if (searchParams.has('demo')) {
             const loadInitFile = async () => {
                 const _url = searchParams.get('demo');
-                const altUrl = '/models/fire_model.mmp';
+                // import.meta.env.BASE_URL is Vite's runtime read of the configured `base`
+                // (see vite.config.js) -- a plain '/models/...' fetch() call isn't rewritten
+                // by Vite's build the way HTML href/src attributes are, so it 404s once the
+                // app is deployed under a subpath (e.g. GitHub Pages).
+                const altUrl = `${import.meta.env.BASE_URL}models/fire_model.mmp`;
                 // const altUrl = '/models/fish_wetland_ozesmi.json.mmp';
                 const url = _url ? _url : altUrl;
                 const filename = url.substring(url.lastIndexOf('/') + 1, url.indexOf('.'));

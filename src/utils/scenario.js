@@ -23,6 +23,25 @@ export const getScenarioOverride = (scenario, conceptId) => {
     };
 };
 
+// Same per-concept delta the table already shows as Increase/Decrease text,
+// reshaped for the bar chart: non-clamped concepts only (clamped ones are
+// scenario inputs, not outputs), zero-delta ones dropped since a flat bar is
+// noise, not signal.
+export const getScenarioChartData = (concepts, scenario, results) => {
+    const resultById = new Map((results || []).map(({ id, influence }) => [id, influence]));
+    return (concepts || [])
+        .map((concept) => {
+            const { influence } = getScenarioOverride(scenario, concept.id);
+            return {
+                id: concept.id,
+                name: concept.name,
+                value: resultById.get(concept.id) || 0,
+                isClamped: !!influence,
+            };
+        })
+        .filter(({ value, isClamped }) => !isClamped && value !== 0);
+};
+
 export const getPredictionScore = (concepts, scenario, results) => {
     const resultById = new Map((results || []).map(({ id, influence }) => [id, influence]));
 

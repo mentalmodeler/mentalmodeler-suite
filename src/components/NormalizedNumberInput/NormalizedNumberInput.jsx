@@ -16,6 +16,7 @@ export const NormalizedNumberInput = ({
     min = -1,
     max = 1,
     step = 0.01,
+    sx,
     ...props
 }) => {
     const [draft, setDraft] = useState(value ?? '');
@@ -41,6 +42,16 @@ export const NormalizedNumberInput = ({
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onBlur={onBlur}
+            sx={{
+                // The native up/down spinner eats most of a narrow cell's
+                // width, leaving no room for the digit itself -- drop it.
+                MozAppearance: 'textfield',
+                '&::-webkit-inner-spin-button, &::-webkit-outer-spin-button': {
+                    WebkitAppearance: 'none',
+                    margin: 0,
+                },
+                ...sx,
+            }}
             {...props}
         />
     );

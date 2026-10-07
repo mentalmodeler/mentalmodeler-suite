@@ -15,9 +15,14 @@ import {
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { evenRowCellStyle, oddRowCellStyle, topHeaderCellStyle } from '../../constants/styles';
-import { getPredictionScore, getScenarioOverride } from '../../utils/scenario';
+import { getPredictionScore, getScenarioChartData, getScenarioOverride } from '../../utils/scenario';
 import { runScenarioCalculation } from '../../services/scenarioEngine';
 import { NormalizedNumberInput } from '../NormalizedNumberInput/NormalizedNumberInput';
+import { ScenarioChart } from './ScenarioChart';
+
+// MUI's default TableCell padding (16px each side) leaves almost nothing for
+// content once a column is this narrow -- these columns need the room back.
+const narrowCellStyle = { paddingInline: '4px' };
 
 const SQUASH_FUNCTIONS = [
     { value: 'sigmoid', label: 'Sigmoid' },
@@ -63,6 +68,11 @@ export const Scenario = () => {
 
     const prediction = useMemo(
         () => getPredictionScore(concepts, selectedScenario, results),
+        [concepts, selectedScenario, results],
+    );
+
+    const chartData = useMemo(
+        () => getScenarioChartData(concepts, selectedScenario, results),
         [concepts, selectedScenario, results],
     );
 
@@ -115,62 +125,75 @@ export const Scenario = () => {
                     State Prediction: {loading ? '…' : Number.isNaN(prediction) ? '' : `${prediction}%`}
                 </Typography>
             </Box>
-            <TableContainer sx={{ overflow: 'auto', flex: 1 }}>
-                <Table size="small" stickyHeader aria-label="Scenario concept table">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell sx={topHeaderCellStyle} />
-                            <TableCell sx={topHeaderCellStyle}>Component</TableCell>
-                            <TableCell sx={topHeaderCellStyle}>+/-</TableCell>
-                            <TableCell sx={topHeaderCellStyle}>Preferred State</TableCell>
-                            <TableCell sx={topHeaderCellStyle}>Actual State</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {concepts.map((concept, i) => {
-                            const cellStyle = i % 2 === 0 ? oddRowCellStyle : evenRowCellStyle;
-                            const { selected, influence } = getScenarioOverride(selectedScenario, concept.id);
-                            const isClamped = !!influence;
-                            const preferredState = parseFloat(concept.preferredState || 0);
-                            const actualState = resultById.get(concept.id) || 0;
-                            return (
-                                <TableRow key={concept.id}>
-                                    <TableCell sx={cellStyle}>
-                                        <Checkbox
-                                            checked={selected}
-                                            size="small"
-                                            onChange={(e) => onOverrideChange(concept.id, 'selected', e.target.checked)}
-                                        />
-                                    </TableCell>
-                                    <TableCell sx={cellStyle}>{concept.name}</TableCell>
-                                    <TableCell sx={cellStyle}>
-                                        <NormalizedNumberInput
-                                            value={influence}
-                                            emptyValue={0}
-                                            onCommit={(val) => onOverrideChange(concept.id, 'influence', val)}
-                                            sx={{ width: '100%' }}
-                                        />
-                                    </TableCell>
-                                    <TableCell sx={cellStyle}>
-                                        {!isClamped && preferredState !== 0
-                                            ? preferredState > 0
-                                                ? 'Increase'
-                                                : 'Decrease'
-                                            : ''}
-                                    </TableCell>
-                                    <TableCell sx={cellStyle}>
-                                        {!isClamped && actualState !== 0
-                                            ? actualState > 0
-                                                ? 'Increase'
-                                                : 'Decrease'
-                                            : ''}
-                                    </TableCell>
-                                </TableRow>
-                            );
-                        })}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+            <Box sx={{ display: 'flex', flex: 1, minHeight: 0, gap: 2 }}>
+                <TableContainer sx={{ overflow: 'auto', flex: '0 0 400px', minWidth: 0, overscrollBehavior: 'none' }}>
+                    <Table size="small" stickyHeader aria-label="Scenario concept table" sx={{ tableLayout: 'fixed' }}>
+                        <TableHead sx={{ '& .MuiTableCell-head': { verticalAlign: 'bottom' } }}>
+                            <TableRow>
+                                <TableCell sx={{ ...topHeaderCellStyle, ...narrowCellStyle, width: 36 }} />
+                                <TableCell sx={topHeaderCellStyle}>Component</TableCell>
+                                <TableCell sx={{ ...topHeaderCellStyle, ...narrowCellStyle, width: 56 }}>+/-</TableCell>
+                                <TableCell sx={{ ...topHeaderCellStyle, ...narrowCellStyle, width: 70 }}>
+                                    Preferred State
+                                </TableCell>
+                                <TableCell sx={{ ...topHeaderCellStyle, ...narrowCellStyle, width: 90 }}>
+                                    Actual State
+                                </TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {concepts.map((concept, i) => {
+                                const cellStyle = i % 2 === 0 ? oddRowCellStyle : evenRowCellStyle;
+                                const { selected, influence } = getScenarioOverride(selectedScenario, concept.id);
+                                const isClamped = !!influence;
+                                const preferredState = parseFloat(concept.preferredState || 0);
+                                const actualState = resultById.get(concept.id) || 0;
+                                return (
+                                    <TableRow key={concept.id}>
+                                        <TableCell sx={{ ...cellStyle, ...narrowCellStyle }}>
+                                            <Checkbox
+                                                checked={selected}
+                                                size="small"
+                                                onChange={(e) =>
+                                                    onOverrideChange(concept.id, 'selected', e.target.checked)
+                                                }
+                                            />
+                                        </TableCell>
+                                        <TableCell sx={{ ...cellStyle, wordBreak: 'break-word' }}>
+                                            {concept.name}
+                                        </TableCell>
+                                        <TableCell sx={{ ...cellStyle, ...narrowCellStyle }}>
+                                            <NormalizedNumberInput
+                                                value={influence}
+                                                emptyValue={0}
+                                                onCommit={(val) => onOverrideChange(concept.id, 'influence', val)}
+                                                sx={{ width: '100%' }}
+                                            />
+                                        </TableCell>
+                                        <TableCell sx={{ ...cellStyle, ...narrowCellStyle, wordBreak: 'break-word' }}>
+                                            {!isClamped && preferredState !== 0
+                                                ? preferredState > 0
+                                                    ? 'Increase'
+                                                    : 'Decrease'
+                                                : ''}
+                                        </TableCell>
+                                        <TableCell sx={{ ...cellStyle, ...narrowCellStyle, wordBreak: 'break-word' }}>
+                                            {!isClamped && actualState !== 0
+                                                ? actualState > 0
+                                                    ? 'Increase'
+                                                    : 'Decrease'
+                                                : ''}
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+                <Box sx={{ flex: '1 1 auto', minWidth: 0, overflow: 'hidden', backgroundColor: '#f5f5f5' }}>
+                    <ScenarioChart data={chartData} />
+                </Box>
+            </Box>
         </Box>
     );
 };

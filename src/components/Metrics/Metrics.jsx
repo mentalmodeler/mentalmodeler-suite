@@ -118,7 +118,7 @@ export const Metrics = () => {
                     </Box>
                 ))}
             </Box>
-            <TableContainer sx={{ overflow: 'auto' }}>
+            <TableContainer sx={{ overflow: 'auto', overscrollBehavior: 'none' }}>
                 <Table size="small" stickyHeader aria-label="Concept metrics table">
                     <TableHead>
                         <TableRow>

@@ -5,8 +5,6 @@ import { DescriptionOutlined } from '@mui/icons-material';
 export const FilesHeader = () => (
     <Box
         sx={{
-            borderBottom: 1,
-            borderColor: 'bg.darker',
             gridArea: 'files-header',
             borderStartStartRadius: 24,
             borderEndStartRadius: 24,
@@ -20,11 +18,14 @@ export const FilesHeader = () => (
             justify="center"
             align="center"
             direction="column"
-            gap={0.5}
+            gap={0}
             sx={{
                 borderStartStartRadius: 12,
                 borderStartEndRadius: 12,
                 backgroundColor: 'bg.darkMid',
+                border: '1px solid transparent',
+                paddingInline: 3,
+                minHeight: 48,
                 height: '100%',
             }}
         >

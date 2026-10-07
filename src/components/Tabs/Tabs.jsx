@@ -16,30 +16,35 @@ const _tabs = [
     {
         label: 'Model',
         id: 'model',
+        color: 'tabs.model',
         value: APP_VIEW.MODEL,
         icon: <SchemaOutlined fontSize="small" sx={{ transform: 'rotate(-90deg)' }} />,
     },
     {
         label: 'Matrix',
         id: 'matrix',
+        color: 'tabs.matrix',
         value: APP_VIEW.MATRIX,
         icon: <Apps fontSize="small" />,
     },
     {
         label: 'Preferred State & Metrics',
         id: 'preferredstate',
+        color: 'tabs.metrics',
         value: APP_VIEW.METRICS,
         icon: <Insights fontSize="small" />,
     },
     {
         label: 'Scenario',
         id: 'scenario',
+        color: 'tabs.scenario',
         value: APP_VIEW.SCENARIO,
         icon: <PlayCircleOutline fontSize="small" />,
     },
     {
         label: 'Info',
         id: 'info',
+        color: 'tabs.info',
         value: APP_VIEW.INFO,
         icon: <InfoOutlined fontSize="small" />,
     },
@@ -80,8 +85,8 @@ export const Tabs = () => {
                 sx={{
                     borderStartStartRadius: 12,
                     borderStartEndRadius: 12,
-                    borderBottom: 2,
-                    borderColor: 'bg.darker',
+                    borderBottom: 4,
+                    borderColor: _tabs[activeTab]?.color ?? 'bg.darker',
                 }}
             >
                 {_tabs.map(({ label, id, icon }) => (

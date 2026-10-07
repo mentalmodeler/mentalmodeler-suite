@@ -233,17 +233,21 @@ Minors were deferred (not fixed) — noted below for later.
   a Matrix row shared the id `${concept.id}-${concept.id}-input` (the row's own id used twice)
   instead of including the column's id too.
 
-### Deferred — Minor (not fixed, noted for later)
+### Fixed after review — duplicate names and loading affordance (2026-10-07)
 
-- **Duplicate concept names can produce a wrong prediction score.**
-  `mm-modules.runScenario` (pre-existing math, not touched by this plan) excludes clamped
-  concepts from its results by matching normalized *name*, not id. If two concepts share a name
-  and only one is clamped, the other can be silently dropped from the results — it'll show a
-  blank Actual State and get scored as "incorrect" even though it was never actually computed.
-  Root cause is in `mm-modules`, out of this plan's scope; flagged here since it's reachable from
-  this tab.
-- **No loading affordance on the table itself.** The only pending-state indicator is the `…` that
-  replaces the prediction percentage while a computation is in flight — the clamp table doesn't
-  visually indicate "stale, recomputing." Harmless today since local computation is near-instant;
-  will matter more once the compute-boundary seam (section 2 above) is ever pointed at a real
-  network call.
+- **Duplicate concept names could produce a wrong prediction score.** Originally deferred as
+  Minor, then fixed in `mm-modules`. `runScenario`'s own `influences` array (used to clamp the
+  simulation) and its final `.map()` are already built by iterating `concepts`/`scenarioConcepts`
+  positionally — the one caller (`runScenarioCalculation` in `-suite`) builds `scenarioConcepts`
+  via `model.concepts.map(...)`, guaranteeing `scenarioConcepts[i]` lines up with `concepts[i]`.
+  The results filter was the one place that didn't use that same index: it re-matched by
+  normalized *name* instead, so two concepts sharing a name with only one clamped could drop the
+  wrong one. Fixed by filtering on the same positional index the rest of the function already
+  uses (`.filter((_, i) => !influences[i])`), removing the `normalizeName` re-lookup entirely.
+  Verified with a Node check (`runScenario` given two same-named concepts, only one clamped) that
+  the unclamped duplicate now survives the filter.
+- **No loading affordance on the table itself.** Originally deferred as Minor, then fixed. Added
+  a `LinearProgress` bar (fixed height, opacity-toggled so it never shifts layout) above the
+  table/chart row, plus a brief `opacity: 0.6` dip on that row while `loading` is true — mirrors
+  the dataviz skill's "refetch keeps the frame" guidance (dim the previous render, no skeleton, no
+  flash) rather than blanking the table mid-recompute.

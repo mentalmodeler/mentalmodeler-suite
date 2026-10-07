@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
     Box,
     Checkbox,
+    LinearProgress,
     MenuItem,
     Select,
     Table,
@@ -125,7 +126,19 @@ export const Scenario = () => {
                     State Prediction: {loading ? '…' : Number.isNaN(prediction) ? '' : `${prediction}%`}
                 </Typography>
             </Box>
-            <Box sx={{ display: 'flex', flex: 1, minHeight: 0, gap: 2 }}>
+            {/* Fixed height regardless of loading state so toggling it doesn't shift the
+                table/chart below -- opacity is the only thing that changes. */}
+            <LinearProgress sx={{ height: 3, opacity: loading ? 1 : 0, transition: 'opacity 150ms' }} />
+            <Box
+                sx={{
+                    display: 'flex',
+                    flex: 1,
+                    minHeight: 0,
+                    gap: 2,
+                    opacity: loading ? 0.6 : 1,
+                    transition: 'opacity 150ms',
+                }}
+            >
                 <TableContainer sx={{ overflow: 'auto', flex: '0 0 400px', minWidth: 0, overscrollBehavior: 'none' }}>
                     <Table size="small" stickyHeader aria-label="Scenario concept table" sx={{ tableLayout: 'fixed' }}>
                         <TableHead sx={{ '& .MuiTableCell-head': { verticalAlign: 'bottom' } }}>

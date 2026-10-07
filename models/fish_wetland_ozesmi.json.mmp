@@ -1,0 +1,164 @@
+{
+    "filename": "fish_wetland_ozesmi",
+    "appId": "appid-a6474526d167",
+    "info": {
+        "name": "Model",
+        "author": "",
+        "description": "",
+        "version": "1.1",
+        "date": "Mon Jan 09 2017 19:35:21 GMT-0600 (Central Standard Time)",
+        "id": "6904ef71-0822-f3d6-4453-5babac88fa07"
+    },
+    "groupNames": {},
+    "concepts": [
+        {
+            "id": "2",
+            "name": "Amount of Wetland",
+            "notes": "",
+            "units": "",
+            "group": "0",
+            "x": "87",
+            "y": "28",
+            "preferredState": "0",
+            "relationships": [
+                {
+                    "id": "3",
+                    "name": "Fish population",
+                    "notes": "",
+                    "confidence": "0",
+                    "influence": "1"
+                },
+                {
+                    "id": "4",
+                    "name": "Pollution",
+                    "notes": "",
+                    "confidence": "0",
+                    "influence": "-0.1"
+                },
+                {
+                    "id": "5",
+                    "name": "Livelihood",
+                    "notes": "",
+                    "confidence": "0",
+                    "influence": "0.8"
+                },
+                {
+                    "id": "6",
+                    "name": "Laws",
+                    "notes": "",
+                    "confidence": "0",
+                    "influence": "0"
+                }
+            ]
+        },
+        {
+            "id": "3",
+            "name": "Fish population",
+            "notes": "",
+            "units": "",
+            "group": "0",
+            "x": "309",
+            "y": "303",
+            "preferredState": "0",
+            "relationships": [
+                {
+                    "id": "5",
+                    "name": "Livelihood",
+                    "notes": "",
+                    "confidence": "0",
+                    "influence": "1"
+                }
+            ]
+        },
+        {
+            "id": "4",
+            "name": "Pollution",
+            "notes": "",
+            "units": "",
+            "group": "0",
+            "x": "132",
+            "y": "239",
+            "preferredState": "0",
+            "relationships": [
+                {
+                    "id": "2",
+                    "name": "Amount of Wetland",
+                    "notes": "",
+                    "confidence": "0",
+                    "influence": "-0.2"
+                },
+                {
+                    "id": "3",
+                    "name": "Fish population",
+                    "notes": "",
+                    "confidence": "0",
+                    "influence": "-1"
+                },
+                {
+                    "id": "5",
+                    "name": "Livelihood",
+                    "notes": "",
+                    "confidence": "0",
+                    "influence": "-0.2"
+                }
+            ]
+        },
+        {
+            "id": "5",
+            "name": "Livelihood",
+            "notes": "",
+            "units": "",
+            "group": "0",
+            "x": "531",
+            "y": "234",
+            "preferredState": "0",
+            "relationships": []
+        },
+        {
+            "id": "6",
+            "name": "Laws",
+            "notes": "",
+            "units": "",
+            "group": "0",
+            "x": "503",
+            "y": "32",
+            "preferredState": "0",
+            "relationships": [
+                {
+                    "id": "2",
+                    "name": "Amount of Wetland",
+                    "notes": "",
+                    "confidence": "0",
+                    "influence": "0.2"
+                },
+                {
+                    "id": "3",
+                    "name": "Fish population",
+                    "notes": "",
+                    "confidence": "0",
+                    "influence": "0.5"
+                },
+                {
+                    "id": "4",
+                    "name": "Pollution",
+                    "notes": "",
+                    "confidence": "0",
+                    "influence": "-0.5"
+                },
+                {
+                    "id": "5",
+                    "name": "Livelihood",
+                    "notes": "",
+                    "confidence": "0",
+                    "influence": "-0.2"
+                }
+            ]
+        }
+    ],
+    "scenarios": [
+        {
+            "name": "Scenario",
+            "concepts": []
+        }
+    ]
+}

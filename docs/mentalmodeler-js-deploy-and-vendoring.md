@@ -1,6 +1,6 @@
 # mentalmodeler-js: deploy notes & how it gets vendored into -suite
 
-Notes from a 2026-10-05/06 session, captured so this can be picked back up later.
+Notes from 2026-10-05 through 2026-10-08, captured so this can be picked back up later.
 
 ## 1. How `mentalmodeler-js` deploys to GitHub Pages
 
@@ -41,7 +41,11 @@ Repo: `mentalmodeler/mentalmodeler-js` (CRA 1.x, `react-scripts@1.1.5`).
 `src/index.js` decides standalone-render + demo-load behavior from the URL:
 
 - `standalone` is true if `?standalone` is present, `NODE_ENV==='development'`,
-  or hostname is `mentalmodeler.github.io`.
+  or (hostname is `mentalmodeler.github.io` **and** path starts with
+  `/mentalmodeler-js`). The path check was added 2026-10-08: once `-suite`
+  was *also* deployed under `mentalmodeler.github.io` (different path, same
+  domain), hostname alone false-positived for `-suite` too — see "Known bug,
+  fixed" below.
 - There used to be an `?init` param that loaded a canned model
   (`src/models/simple.mmp.json`), but it was gated by
   `dev && params.has('init')` — since production builds always bake in
@@ -61,20 +65,47 @@ into `-suite`'s own file browser/Redux store via `mm-modules`'
 (no `dev`/`standalone` gating, no hostname check) — same *name*, not the
 same code path, so don't assume a fix to one applies to the other.
 
+### Known bug, fixed (2026-10-08): the hostname collision broke every `-suite` tab switch
+
+Once `-suite` deployed to `mentalmodeler.github.io/mentalmodeler-suite/`, the
+old hostname-only `standalone` check started evaluating `true` there too —
+`-suite` shares `-js`'s hostname, just not its path. That silently broke
+`-suite` in production, not just cosmetically:
+
+- `-suite` calls `window.MentalModelerConceptMap.save()` on every
+  tab/model/scenario switch, to flush canvas edits into Redux
+  (`saveModelFromConceptMap` in `-suite/src/redux/actions/models.js`).
+- Under `standalone=true`, `-js`'s exposed `save()` takes the "download a
+  local file" branch instead of returning `{js, json}` to the caller — so it
+  returned `undefined` on the live site.
+- `-suite`'s `updateModelFromConceptMap` reducer doesn't crash on
+  `undefined` (optional chaining/destructuring are too permissive to throw),
+  but it *does* unconditionally overwrite `selectedModel.concepts`/
+  `groupNames` with `undefined` — silently blanking a model that had real
+  data a moment earlier, every single switch.
+- Something downstream (most likely `ConceptMap.jsx`'s own effect, re-`load()`ing
+  the now-concept-less model back into `-js` to redraw the canvas) then hung
+  the tab outright — confirmed live (not just reasoned about): clicking any
+  tab froze the renderer, `mmp (N).json` downloads stacked up in the browser,
+  and Chrome's "fix the tab slowing your browser" prompt fired.
+
+Fixed by making the hostname check path-aware (`src/index.js`, see §2
+above) — no `-suite` change was needed, since the bug was entirely in
+`-js`'s own standalone-detection logic.
+
 ## 3. How `mentalmodeler-js` gets vendored into `mentalmodeler-suite`
 
 `-suite` does **not** depend on `-js` via npm or a `file:` link (unlike
-`mm-modules`). It vendors a manually-copied build of `-js`'s bundle as
-static assets, loaded via plain `<script>`/`<link>` tags — fully offline,
-no runtime fetch.
+`mm-modules`). It vendors a copied build of `-js`'s bundle as static assets,
+loaded via plain `<script>`/`<link>` tags — fully offline, no runtime fetch.
+(A real package dependency is a candidate for the bigger phase-2 rework
+below — this section describes the interim, still-static-copy setup.)
 
 **Location**: `mentalmodeler-suite/public/libs/conceptmap/`
-- `static/js/main.js` — the active JS bundle. Manually **renamed** from
-  CRA's hashed output (`main.<hash>.js`) to a stable unhashed name, so
-  `index.html` doesn't need to change on every update.
-- `static/css/main.<hash>.css` (+ `.map`) — CSS bundle, hash **kept**, so
-  `index.html`'s `<link>` href must be hand-edited to match whenever this
-  file changes.
+- `static/js/main.js` — the active JS bundle, **stable unhashed name**.
+- `static/css/main.css` (+ `.map`) — CSS bundle, **also stable** as of
+  2026-10-08 (previously kept CRA's content hash, requiring a hand-edit of
+  `index.html` on every update — see below for why that was dropped).
 - `shared/{app.css, font-awesome.css, foundation.css}` — confirmed these
   come from `-js`'s own `public/shared/` folder (CRA copies `public/`
   verbatim into `build/shared/` on build) — not leftovers from
@@ -86,25 +117,35 @@ no runtime fetch.
 **Referenced in `mentalmodeler-suite/index.html`**:
 ```html
 <link href="/libs/conceptmap/shared/app.css" rel="stylesheet" />
-<link href="/libs/conceptmap/static/css/main.43f0ba4e.css" rel="stylesheet" />
+<link href="/libs/conceptmap/static/css/main.css" rel="stylesheet" />
 <script src="/libs/conceptmap/static/js/main.js"></script>
 <!-- commented-out alternative that would load the bundle live from
      https://mentalmodeler.github.io/mentalmodeler-js/... — currently
      disabled in favor of the local copy, which is what keeps -suite
      working offline. -->
 ```
+Both `main.js` and `main.css` are permanently stable names now — this file
+never needs editing again when `-js`'s bundle updates.
 
-**Process today is entirely manual** — no script, no CI step:
-1. In `mentalmodeler-js`: `npm run build` (or `build-js`) produces
-   `build/static/js/main.<hash>.js` and `build/static/css/main.<hash>.css`.
-2. Copy the JS file into `-suite/public/libs/conceptmap/static/js/`,
-   renaming it to `main.js`.
-3. Copy the CSS file (+ `.map`) into
-   `-suite/public/libs/conceptmap/static/css/`, keeping the hashed name.
-4. Hand-edit the hashed CSS filename in `-suite/index.html`'s `<link>` tag
-   to match.
-5. (Optionally) snapshot the previous `static/` contents into a new dated
-   folder before overwriting.
+**Process (2026-10-08, automated via a script)**:
+1. In `mentalmodeler-js`: `npm run build` produces
+   `build/static/js/main.<hash>.js` and `build/static/css/main.<hash>.css`
+   (CRA still content-hashes its own output — this script doesn't touch
+   `-js`'s build config, just copies and renames on the way in).
+2. In `mentalmodeler-suite`: `npm run sync-conceptmap`
+   (`scripts/sync-conceptmap.js`) copies that JS/CSS (stripping the hash on
+   the way in, carrying over `.map` files) and the `shared/` folder into
+   `public/libs/conceptmap/`. Errors loudly if `-js`'s `build/` doesn't
+   exist yet, or if either `static/js`/`static/css` doesn't contain exactly
+   one matching file.
+3. Nothing else — `index.html` doesn't need editing, since both output
+   filenames are fixed.
+
+This replaced the previous fully-manual process (hand-copy, hand-rename,
+hand-edit `index.html`'s CSS link hash on every update) — see git history
+for that version of this doc if needed. Not yet wired into `-suite`'s own
+`build`/`predeploy` scripts — still a manual step you run when `-js`
+changes, not a CI step.
 
 **Runtime contract** `-suite` depends on: `window.MentalModelerConceptMap`
 exposing `{render, load, save, screenshot}` (defined in `-js`'s
@@ -115,17 +156,24 @@ exposing `{render, load, save, screenshot}` (defined in `-js`'s
 
 ## 4. Open items / follow-ups
 
-- **DX gap**: the vendoring process above is manual and error-prone — no
-  record of which `-js` commit produced the currently-vendored bundle.
-  Discussed candidate fix: convert to a `file:../mentalmodeler-js` link
-  (same pattern `mm-modules` already uses) or publish `-js` to npm. Not
-  started.
+- **DX gap, partially closed (2026-10-08)**: the copy-rename-and-hand-edit
+  part of vendoring is now automated (`npm run sync-conceptmap`, §3 above),
+  and there's still no record of which `-js` commit produced the
+  currently-vendored bundle. The real fix — planned as its own later
+  project, not started — is to stop vendoring static copies at all: rework
+  `-js` to ship both (a) a real installable package `-suite` can `import`
+  directly (`file:../mentalmodeler-js`, same pattern `mm-modules` already
+  uses — no copy step, no hostname-sniffing-style seam at all) and (b) a
+  stable-URL global-script build for the public embed API (third parties
+  embedding via `<script src="...">` + `window.MentalModelerConceptMap`,
+  same contract `-scenario` and standalone users rely on today) — likely
+  alongside a Vite rewrite, since `-js` is still on `react-scripts@1.1.5`
+  (React 16). Out of scope for now; the 2026-10-08 fixes above were
+  deliberately kept small and interim.
 - Old `docs/` folder on `-js`'s `master` (previously used for its GitHub
   Pages deploy) — not yet cleaned up.
-- `-suite`'s own GitHub Pages deploy — config done (2026-10-07), same
-  `gh-pages` npm package approach as `-js`; the actual first deploy and the
-  GitHub repo's Pages-source switch haven't been run yet (external/live
-  changes, held for explicit go-ahead). What's in place:
+- `-suite`'s own GitHub Pages deploy — **live** as of 2026-10-07:
+  https://mentalmodeler.github.io/mentalmodeler-suite/. What's in place:
   1. `vite.config.js`'s `base` is now `/mentalmodeler-suite/` in production
      (matching the repo name, since Pages project sites serve from
      `https://<org>.github.io/<repo>/`), `/` in dev.

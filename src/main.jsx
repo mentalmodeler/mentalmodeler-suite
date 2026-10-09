@@ -8,11 +8,6 @@ import './index.css';
 import { GlobalStyles, ThemeProvider } from '@mui/material';
 import { theme } from './constants/theme.js';
 import 'mentalmodeler-js/dist/mentalmodeler-js.css';
-import html2canvas from 'html2canvas';
-
-// the embedded mentalmodeler-js bundle's own window.MentalModelerConceptMap.screenshot()
-// also expects this global - without it, that screenshot API silently fails too
-window.html2canvas = html2canvas;
 
 console.log('theme:', theme);
 

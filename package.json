@@ -21,7 +21,6 @@
         "@mui/x-tree-view": "^7.12.1",
         "@reduxjs/toolkit": "^1.9.5",
         "framer-motion": "^10.16.4",
-        "html2canvas": "^1.4.1",
         "lodash.debounce": "^4.0.8",
         "lodash.throttle": "^4.1.1",
         "mentalmodeler-js": "file:../mentalmodeler-js",

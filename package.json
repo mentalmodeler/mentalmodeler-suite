@@ -24,6 +24,7 @@
         "html2canvas": "^1.4.1",
         "lodash.debounce": "^4.0.8",
         "lodash.throttle": "^4.1.1",
+        "mentalmodeler-js": "file:../mentalmodeler-js",
         "mm-modules": "file:../mm-modules",
         "papaparse": "^5.7.0",
         "prop-types": "^15.8.1",

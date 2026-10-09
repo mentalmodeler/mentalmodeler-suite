@@ -7,6 +7,7 @@ import store, { persistor } from './redux/data/store';
 import './index.css';
 import { GlobalStyles, ThemeProvider } from '@mui/material';
 import { theme } from './constants/theme.js';
+import 'mentalmodeler-js/dist/mentalmodeler-js.css';
 import html2canvas from 'html2canvas';
 
 // the embedded mentalmodeler-js bundle's own window.MentalModelerConceptMap.screenshot()

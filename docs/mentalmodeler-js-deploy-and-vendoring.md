@@ -1,5 +1,7 @@
 # mentalmodeler-js: deploy notes & how it gets vendored into -suite
 
+> **Superseded 2026-10-09:** `-suite` no longer vendors a copy of `-js`. It links `file:../mentalmodeler-js` and imports it; `scripts/sync-conceptmap.js` and `public/libs/conceptmap/` were deleted. §3 below describes the old interim setup and is kept for history. The `standalone` detection described in §2 was removed from `-js` entirely (mentalmodeler-js PR #32). See `docs/superpowers/plans/2026-10-09-consume-mentalmodeler-js-package.md`.
+
 Notes from 2026-10-05 through 2026-10-08, captured so this can be picked back up later.
 
 ## 1. How `mentalmodeler-js` deploys to GitHub Pages
@@ -169,7 +171,7 @@ exposing `{render, load, save, screenshot}` (defined in `-js`'s
   same contract `-scenario` and standalone users rely on today) — likely
   alongside a Vite rewrite, since `-js` is still on `react-scripts@1.1.5`
   (React 16). Out of scope for now; the 2026-10-08 fixes above were
-  deliberately kept small and interim.
+  deliberately kept small and interim. **Resolved 2026-10-09** — see the note at the top.
 - Old `docs/` folder on `-js`'s `master` (previously used for its GitHub
   Pages deploy) — not yet cleaned up.
 - `-suite`'s own GitHub Pages deploy — **live** as of 2026-10-07:

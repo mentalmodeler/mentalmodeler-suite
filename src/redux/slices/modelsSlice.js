@@ -9,7 +9,30 @@ const updateInfluence = ({ concepts, influencerId, influenceeId, influence }) =>
         if (concept.id !== influencerId) {
             return concept;
         }
-        const relationships = concept.relationships.map((relationship) => {
+        const existing = concept.relationships || [];
+        if (!existing.some((relationship) => relationship.id === influenceeId)) {
+            // Matrix cells start empty: committing a value there must create the relationship,
+            // while committing an empty value must not.
+            if (influence === '') {
+                return concept;
+            }
+            const influencee = concepts.find(({ id }) => id === influenceeId);
+            return {
+                ...concept,
+                relationships: [
+                    ...existing,
+                    {
+                        id: influenceeId,
+                        name: influencee?.name ?? '',
+                        notes: '',
+                        confidence: 0,
+                        influence,
+                        lastUpdated: Date.now(),
+                    },
+                ],
+            };
+        }
+        const relationships = existing.map((relationship) => {
             if (relationship.id !== influenceeId) {
                 return relationship;
             }

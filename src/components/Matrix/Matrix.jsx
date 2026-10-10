@@ -67,7 +67,9 @@ export const Matrix = () => {
                                 </TableCell>
                                 {concepts.map((_concept) => {
                                     const relationship = findRelationship(concept, _concept);
-                                    const influence = relationship?.influence ?? '';
+                                    // a connection with no value is still a connection: show 0 (no effect), not blank
+                                    const hasValue = relationship?.influence !== '' && relationship?.influence != null;
+                                    const influence = relationship ? (hasValue ? relationship.influence : 0) : '';
                                     return (
                                         <TableCell
                                             key={`row-${_concept.id}`}

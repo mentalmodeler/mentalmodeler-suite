@@ -13,19 +13,23 @@ npm run dev       # vite dev server on 0.0.0.0:8081
 npm run build     # vite build
 npm run preview   # preview the production build
 npm run lint      # eslint . --ext js,jsx --max-warnings 0
+npm test          # vitest run (jsdom, globals; *.test.js / *.test.jsx next to the code)
+npm run test:watch
 ```
+
+Vitest is pinned to 0.34.x because it is the last line that shares this repo's Vite 4. Components that read the theme via `@emotion/react`'s `useTheme` (e.g. `Matrix`) need an `@emotion/react` `ThemeProvider` in tests: under Vitest MUI's `ThemeProvider` does not fill that same context instance.
 
 There is no test runner configured in this repo. Node version is pinned via `.nvmrc` (`lts/hydrogen`, i.e. Node 18).
 
 ## Architecture
 
-### The legacy ConceptMap bundle is a separate build, not source in this repo
+### mentalmodeler-js: the ConceptMap editor, linked as a package
 
-`index.html` loads `/libs/conceptmap/static/js/main.js` and `/libs/conceptmap/static/css/main.*.css` as classic (non-module) scripts, **before** the Vite/React entrypoint. That script sets a global `window.MentalModelerConceptMap` object with `render(container)`, `load(model)`, and `save()` methods. `src/components/ConceptMap/ConceptMap.jsx` is a thin wrapper: it renders an empty `<Box>`, then imperatively calls `window.MentalModelerConceptMap.render/load` in `useEffect`, and other code (`src/redux/actions/models.js`) calls `window.MentalModelerConceptMap.save()` to pull the current canvas state back into Redux before switching tabs/models.
+`package.json` depends on `"mentalmodeler-js": "file:../mentalmodeler-js"` (same pattern as `mm-modules`). `src/main.jsx` imports its CSS (`mentalmodeler-js/dist/mentalmodeler-js.css`); `src/components/ConceptMap/ConceptMap.jsx` calls `render(container, { showLoadSaveButtons: false })` / `load(model)`; `src/redux/actions/models.js` calls `save()` (returns `{js, json}`; never downloads, and `undefined` only if the widget threw — the action then keeps the existing model) to pull canvas state into Redux before switching tabs/models; `src/services/print.js` calls `screenshot()`. The package bundles its own React 16 as a sealed second React root.
 
-This bundle is built from the sibling repo `../mentalmodeler-js` and the compiled output is manually copied into `public/libs/conceptmap/`. The dated folders (`public/libs/conceptmap/2024-08-10/`, `2024-08-11/`, `2024-08-12/`) are snapshots of earlier copies kept for reference — only `public/libs/conceptmap/shared/` and `public/libs/conceptmap/static/` (no date suffix) are the live ones referenced by `index.html`. When updating the concept-map editor, rebuild `mentalmodeler-js` and copy its output into `public/libs/conceptmap/static` + `shared`, not into one of the dated folders.
+`mentalmodeler-js` also sets `window.html2canvas` when imported; `print.js` relies on that global for the Metrics/Scenario panels, so `-suite` has no `html2canvas` dependency of its own.
 
-Because `window.MentalModelerConceptMap` only exists once that script runs, any code depending on it must guard with `window.MentalModelerConceptMap?.method` and only call it while the Model tab (`APP_VIEW.MODEL`) is active — this is the pattern used throughout.
+**Rebuild discipline (manual):** `dist/` in `../mentalmodeler-js` is git-ignored. After changing `-js`, run `npm run build` there, then `npm install` here. A fresh clone of `-js` must be built before `-suite` can install or build.
 
 ### mm-modules: the MMP file format library
 

@@ -1,4 +1,4 @@
-import html2canvas from 'html2canvas';
+import { screenshot } from 'mentalmodeler-js';
 import store from '../redux/data/store';
 import { APP_VIEW } from '../redux/slices/appSlice';
 import { makeScenarioId } from '../utils/utils';
@@ -36,9 +36,14 @@ const rasterizePanel = async (elementId) => {
     if (!element) {
         return null;
     }
+    // window.html2canvas is provided by mentalmodeler-js on import
+    if (typeof window.html2canvas === 'undefined') {
+        console.error('print: window.html2canvas is not defined; skipping panel', elementId);
+        return null;
+    }
     element.classList.add('printable');
     try {
-        return await html2canvas(element, { allowTaint: true, logging: false });
+        return await window.html2canvas(element, { allowTaint: true, logging: false });
     } finally {
         element.classList.remove('printable');
     }
@@ -80,10 +85,7 @@ export const printModel = async () => {
     try {
         setView(APP_VIEW.MODEL);
         await wait(500);
-        if (window.MentalModelerConceptMap?.screenshot) {
-            const modelCanvas = await window.MentalModelerConceptMap.screenshot();
-            appendCanvas(printArea, modelCanvas);
-        }
+        appendCanvas(printArea, await screenshot());
 
         setView(APP_VIEW.METRICS);
         await wait(500);

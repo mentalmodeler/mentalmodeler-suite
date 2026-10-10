@@ -18,10 +18,10 @@ module.exports = {
     },
     overrides: [
         {
-            // Plain Node CLI scripts (sync-conceptmap.js etc.), not part of the
-            // browser app -- need Node globals instead of browser ones.
-            files: ['scripts/**/*.js'],
-            env: { browser: false, node: true, es2020: true },
+            // Vitest tests run with `globals: true` (see vite.config.js)
+            files: ['**/*.test.js', '**/*.test.jsx'],
+            env: { jest: true },
+            globals: { vi: 'readonly' },
         },
     ],
 };

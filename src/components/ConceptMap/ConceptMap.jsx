@@ -1,5 +1,6 @@
 import { Box } from '@mui/material';
 import { useEffect, useRef } from 'react';
+import { render, load } from 'mentalmodeler-js';
 import { APP_VIEW } from '../../redux/slices/appSlice';
 import { useSelector } from 'react-redux';
 
@@ -10,15 +11,15 @@ export const ConceptMap = () => {
     // const selectedModel = useMemo(() => models.find((m) => m.appId === selectedId), [selectedId]);
 
     useEffect(() => {
-        if (view === APP_VIEW.MODEL && window.MentalModelerConceptMap?.render) {
-            window.MentalModelerConceptMap.render(contentRef.current);
+        if (view === APP_VIEW.MODEL) {
+            render(contentRef.current, { showLoadSaveButtons: false });
         }
     }, [view]);
 
     useEffect(() => {
-        if (selectedId && view === APP_VIEW.MODEL && window.MentalModelerConceptMap?.load) {
+        if (selectedId && view === APP_VIEW.MODEL) {
             console.log('selectedModel:', selectedModel);
-            window.MentalModelerConceptMap.load(selectedModel);
+            load(selectedModel);
         }
     }, [selectedId]);
 

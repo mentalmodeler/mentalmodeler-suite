@@ -13,7 +13,11 @@ npm run dev       # vite dev server on 0.0.0.0:8081
 npm run build     # vite build
 npm run preview   # preview the production build
 npm run lint      # eslint . --ext js,jsx --max-warnings 0
+npm test          # vitest run (jsdom, globals; *.test.js / *.test.jsx next to the code)
+npm run test:watch
 ```
+
+Vitest is pinned to 0.34.x because it is the last line that shares this repo's Vite 4. Components that read the theme via `@emotion/react`'s `useTheme` (e.g. `Matrix`) need an `@emotion/react` `ThemeProvider` in tests: under Vitest MUI's `ThemeProvider` does not fill that same context instance.
 
 There is no test runner configured in this repo. Node version is pinned via `.nvmrc` (`lts/hydrogen`, i.e. Node 18).
 

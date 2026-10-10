@@ -1,5 +1,3 @@
-/* eslint-disable no-undef */
-
 import { useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { ExpandableTransition, TRANSITION_STATES } from './index';
@@ -20,12 +18,12 @@ const Demo = ({ isExpandedInitially, onTransitionComplete }) => {
 };
 
 beforeEach(() => {
-    jest.useFakeTimers();
-    jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => cb());
+    vi.useFakeTimers();
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => cb());
 });
 
 afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
     window.requestAnimationFrame.mockRestore();
 });
 
@@ -39,7 +37,7 @@ describe('ExpandableTransition', () => {
     });
 
     test('transitions from expanded to collapsed', async () => {
-        const mockFn = jest.fn();
+        const mockFn = vi.fn();
 
         render(<Demo isExpandedInitially={true} onTransitionComplete={mockFn} />);
 
@@ -48,7 +46,7 @@ describe('ExpandableTransition', () => {
         fireEvent.click(screen.queryByText('collapse'));
 
         await act(async () => {
-            jest.advanceTimersByTime(500);
+            vi.advanceTimersByTime(500);
         });
 
         expect(screen.queryAllByTestId('expandable-transition-root-element')).toHaveLength(0);
@@ -57,7 +55,7 @@ describe('ExpandableTransition', () => {
     });
 
     test('transitions from collapsed to expanded', async () => {
-        const mockFn = jest.fn();
+        const mockFn = vi.fn();
 
         render(<Demo isExpandedInitially={false} onTransitionComplete={mockFn} />);
 
@@ -66,7 +64,7 @@ describe('ExpandableTransition', () => {
         fireEvent.click(screen.queryByText('expand'));
 
         await act(async () => {
-            jest.advanceTimersByTime(500);
+            vi.advanceTimersByTime(500);
         });
 
         expect(screen.queryAllByTestId('expandable-transition-root-element')).toHaveLength(1);

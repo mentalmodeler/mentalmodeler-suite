@@ -16,4 +16,12 @@ module.exports = {
         'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
         "react/prop-types": 0,
     },
+    overrides: [
+        {
+            // Vitest tests run with `globals: true` (see vite.config.js)
+            files: ['**/*.test.js', '**/*.test.jsx'],
+            env: { jest: true },
+            globals: { vi: 'readonly' },
+        },
+    ],
 };

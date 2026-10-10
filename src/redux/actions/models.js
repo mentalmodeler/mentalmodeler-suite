@@ -10,6 +10,7 @@ export const saveModelFromConceptMap = (view) => {
         // the selected model's concepts/groupNames (see docs/mentalmodeler-js-deploy-and-vendoring.md).
         if (!model) {
             console.error('saveModelFromConceptMap: concept map returned no data; keeping existing model');
+            alert('Could not save the concept map. Your latest edits may be lost.');
             return () => {};
         }
         return (dispatch) => {

@@ -36,13 +36,13 @@ const rasterizePanel = async (elementId) => {
     if (!element) {
         return null;
     }
+    // window.html2canvas is provided by mentalmodeler-js on import
+    if (typeof window.html2canvas === 'undefined') {
+        console.error('print: window.html2canvas is not defined; skipping panel', elementId);
+        return null;
+    }
     element.classList.add('printable');
     try {
-        // window.html2canvas is provided by mentalmodeler-js on import
-        if (typeof window.html2canvas === 'undefined') {
-            console.error('print: window.html2canvas is not defined; skipping panel', elementId);
-            return null;
-        }
         return await window.html2canvas(element, { allowTaint: true, logging: false });
     } finally {
         element.classList.remove('printable');

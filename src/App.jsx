@@ -5,7 +5,7 @@ import { Content } from './components/Content/Content';
 import { Files } from './components/Files/Files';
 import { FilesHeader } from './components/Files/FilesHeader';
 import { useEffect, useRef } from 'react';
-import { loadAndParseURL } from 'mm-modules';
+import { loadDemoModel } from './services/loadDemoModel';
 import { useDispatch } from 'react-redux';
 import { AddDialog } from './components/Dialogs/AddDialog';
 import { SaveDialog } from './components/Dialogs/SaveDialog';
@@ -45,16 +45,15 @@ const App = () => {
                 const altUrl = `${import.meta.env.BASE_URL}models/fire_model.mmp`;
                 // const altUrl = '/models/fish_wetland_ozesmi.json.mmp';
                 const url = _url ? _url : altUrl;
-                const filename = url.substring(url.lastIndexOf('/') + 1, url.indexOf('.'));
-                const model = await loadAndParseURL(url);
+                const model = await loadDemoModel(url);
+                if (!model) {
+                    return;
+                }
                 dispatch({
                     type: 'models/addModel',
                     payload: {
                         field: '',
-                        value: {
-                            ...model,
-                            filename,
-                        },
+                        value: model,
                     },
                 });
             };

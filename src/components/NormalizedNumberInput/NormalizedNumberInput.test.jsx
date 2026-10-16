@@ -268,6 +268,13 @@ describe('NormalizedNumberInput slider placement', () => {
         expect(sliderRoot()).not.toBeNull();
     });
 
+    it('closes when the wheel is used over the slider, so the next scroll reaches the table', () => {
+        const { input } = setup({ value: 0.5, showSlider: true });
+        openSlider(input);
+        fireEvent.wheel(sliderRoot());
+        expect(sliderRoot()).toBeNull();
+    });
+
     it('sits above the matrix sticky headers but below the app bar and dialogs', () => {
         const { input } = setup({ value: 0.5, showSlider: true });
         openSlider(input);

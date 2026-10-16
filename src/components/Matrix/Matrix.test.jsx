@@ -5,6 +5,7 @@ import { ThemeProvider as EmotionThemeProvider } from '@emotion/react';
 import { configureStore } from '@reduxjs/toolkit';
 import modelsReducer from '../../redux/slices/modelsSlice';
 import { theme } from '../../constants/theme';
+import { sideHeaderCellStyle } from '../../constants/styles';
 import { Matrix } from './Matrix';
 
 const makeStore = (relationshipsOfA = []) => {
@@ -168,5 +169,24 @@ describe('Matrix cell slider', () => {
         fireEvent.focus(cell('a', 'b'));
         fireEvent.blur(cell('a', 'b'));
         expect(store.getState().models.selectedModel).toBe(before);
+    });
+});
+
+describe('Matrix focus and scrolling', () => {
+    it('keeps a focused cell below the sticky headers, so it never draws over them when scrolled under', () => {
+        const cell = renderMatrix(makeStore());
+        cell('a', 'b').focus();
+        const { zIndex } = window.getComputedStyle(cell('a', 'b'));
+        expect(Number(zIndex)).toBeGreaterThan(1);
+        expect(Number(zIndex)).toBeLessThan(sideHeaderCellStyle.zIndex);
+    });
+
+    it('does not block scrolling when the wheel is used over the focused cell', () => {
+        const cell = renderMatrix(makeStore());
+        cell('a', 'b').focus();
+        const notCancelled = fireEvent.wheel(cell('a', 'b'));
+        expect(notCancelled).toBe(true);
+        // Leaving the cell is how the browser is stopped from changing the number on wheel.
+        expect(document.activeElement).not.toBe(cell('a', 'b'));
     });
 });

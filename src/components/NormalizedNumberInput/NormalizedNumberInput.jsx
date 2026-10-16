@@ -167,6 +167,9 @@ export const NormalizedNumberInput = ({
                         elevation={2}
                         // The slider is decorative: MUI focuses its hidden input on mouse down, so hand focus
                         // straight back to the text input (the accessible control).
+                        // The slider is outside the table, so a wheel over it can't scroll the table: close it,
+                        // and the next wheel (now over the table) does.
+                        onWheel={() => setOpen(false)}
                         onMouseDownCapture={(e) => {
                             grabbedThumbRef.current = !!e.target.closest?.('.MuiSlider-thumb');
                         }}

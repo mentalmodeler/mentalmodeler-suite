@@ -27,8 +27,10 @@ export const Matrix = () => {
     useEffect(() => {
         const elem = tableRef.current;
         const onWheel = (e) => {
+            // A focused number input changes its value on wheel. preventDefault() would stop that but also stops the
+            // table scrolling, so leave the input instead: no value change, and the scroll goes through.
             if (document.activeElement === e.target && e.target.type === 'number') {
-                e.preventDefault();
+                e.target.blur();
             }
         };
         elem.addEventListener('wheel', onWheel);
@@ -111,7 +113,10 @@ export const Matrix = () => {
                                                     fontSize: '1rem',
                                                     '&:focus': {
                                                         outline: `2px solid ${theme.palette.tabs.matrix}`,
-                                                        zIndex: 5,
+                                                        // Above neighboring cells' inputs (1) so the outline isn't
+                                                        // cut off, but below the sticky headers (3-4) so a focused
+                                                        // cell scrolled under one doesn't draw over it.
+                                                        zIndex: 2,
                                                     },
                                                 }}
                                             />

@@ -2,6 +2,15 @@ import { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import { normalize } from '../../utils/utils';
 
+// The value the cell currently holds, as a number (or emptyValue when blank), so "0.5" and 0.5 compare equal.
+const toCurrent = (value, emptyValue) => {
+    if (value === '' || value == null) {
+        return emptyValue;
+    }
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? emptyValue : parsed;
+};
+
 // Controlled by local state, not the value prop directly: typing updates local
 // state on every keystroke (cheap, no parent dispatch), and only on blur does
 // the normalized value get committed via onCommit - mirrors mentalmodeler-js's
@@ -29,7 +38,9 @@ export const NormalizedNumberInput = ({
         const parsed = parseFloat(draft);
         const committed = isNaN(parsed) ? emptyValue : normalize(parsed, min, max);
         setDraft(committed);
-        onCommit(committed);
+        if (committed !== toCurrent(value, emptyValue)) {
+            onCommit(committed);
+        }
     };
 
     return (

@@ -48,6 +48,22 @@ export const NormalizedNumberInput = ({
         setDraft(value ?? '');
     }, [value]);
 
+    // The slider is portaled to <body>, so it would otherwise stay put (or follow its cell out from under the
+    // table's sticky headers and over the page chrome) when the table scrolls. Close it on any scroll, in
+    // any scroll container (scroll doesn't bubble, hence capture), except one inside the slider itself.
+    useEffect(() => {
+        if (!open) {
+            return undefined;
+        }
+        const onScroll = (e) => {
+            if (!paperRef.current?.contains(e.target)) {
+                setOpen(false);
+            }
+        };
+        window.addEventListener('scroll', onScroll, true);
+        return () => window.removeEventListener('scroll', onScroll, true);
+    }, [open]);
+
     const onBlur = (e) => {
         // Focus moving into the slider (MUI focuses its hidden input on mouse down) is not the user leaving the
         // cell: don't commit a half-typed draft separately from the drag.
@@ -142,7 +158,8 @@ export const NormalizedNumberInput = ({
                     open={open}
                     anchorEl={anchorRef.current}
                     placement="bottom-start"
-                    sx={{ zIndex: (theme) => theme.zIndex.modal }}
+                    // Above the matrix's sticky headers (z 2-4), below the app bar and dialogs.
+                    sx={{ zIndex: (theme) => theme.zIndex.appBar - 1 }}
                 >
                     <Paper
                         ref={paperRef}

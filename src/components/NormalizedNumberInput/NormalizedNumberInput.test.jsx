@@ -251,3 +251,28 @@ describe('NormalizedNumberInput slider thumb and focus', () => {
         expect(onCommit).not.toHaveBeenCalled();
     });
 });
+
+describe('NormalizedNumberInput slider placement', () => {
+    it('closes when the page or a scroll container scrolls, so it never floats away from its cell', () => {
+        const { input } = setup({ value: 0.5, showSlider: true });
+        openSlider(input);
+        expect(sliderRoot()).not.toBeNull();
+        fireEvent.scroll(document.body);
+        expect(sliderRoot()).toBeNull();
+    });
+
+    it('stays open when the slider itself is scrolled or touched', () => {
+        const { input } = setup({ value: 0.5, showSlider: true });
+        openSlider(input);
+        fireEvent.scroll(sliderRoot());
+        expect(sliderRoot()).not.toBeNull();
+    });
+
+    it('sits above the matrix sticky headers but below the app bar and dialogs', () => {
+        const { input } = setup({ value: 0.5, showSlider: true });
+        openSlider(input);
+        const { zIndex } = window.getComputedStyle(document.querySelector('[role="tooltip"]'));
+        expect(Number(zIndex)).toBeGreaterThan(4);
+        expect(Number(zIndex)).toBeLessThan(1100);
+    });
+});

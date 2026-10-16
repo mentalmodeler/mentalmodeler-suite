@@ -179,6 +179,7 @@ export const Scenario = () => {
                                             <NormalizedNumberInput
                                                 value={influence}
                                                 emptyValue={0}
+                                                showSlider
                                                 onCommit={(val) => onOverrideChange(concept.id, 'influence', val)}
                                                 sx={{ width: '100%' }}
                                             />

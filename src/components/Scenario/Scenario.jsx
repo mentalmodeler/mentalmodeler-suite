@@ -13,9 +13,16 @@ import {
     TableRow,
     TextField,
     Typography,
+    useTheme,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { evenRowCellStyle, oddRowCellStyle, topHeaderCellStyle } from '../../constants/styles';
+import {
+    evenRowCellStyle,
+    getValueCellStyle,
+    getValueInputStyle,
+    oddRowCellStyle,
+    topHeaderCellStyle,
+} from '../../constants/styles';
 import { getPredictionScore, getScenarioChartData, getScenarioOverride } from '../../utils/scenario';
 import { runScenarioCalculation } from '../../services/scenarioEngine';
 import { NormalizedNumberInput } from '../NormalizedNumberInput/NormalizedNumberInput';
@@ -32,6 +39,7 @@ const SQUASH_FUNCTIONS = [
 
 export const Scenario = () => {
     const dispatch = useDispatch();
+    const theme = useTheme();
     const { selectedModel, selectedScenario, selectedScenarioId } = useSelector((state) => state.models) || {};
     const { concepts = [] } = selectedModel || {};
     const [squashFunction, setSquashFunction] = useState('sigmoid');
@@ -139,13 +147,13 @@ export const Scenario = () => {
                     transition: 'opacity 150ms',
                 }}
             >
-                <TableContainer sx={{ overflow: 'auto', flex: '0 0 400px', minWidth: 0, overscrollBehavior: 'none' }}>
+                <TableContainer sx={{ overflow: 'auto', flex: '0 0 424px', minWidth: 0, overscrollBehavior: 'none' }}>
                     <Table size="small" stickyHeader aria-label="Scenario concept table" sx={{ tableLayout: 'fixed' }}>
                         <TableHead sx={{ '& .MuiTableCell-head': { verticalAlign: 'bottom' } }}>
                             <TableRow>
                                 <TableCell sx={{ ...topHeaderCellStyle, ...narrowCellStyle, width: 36 }} />
                                 <TableCell sx={topHeaderCellStyle}>Component</TableCell>
-                                <TableCell sx={{ ...topHeaderCellStyle, ...narrowCellStyle, width: 56 }}>+/-</TableCell>
+                                <TableCell sx={{ ...topHeaderCellStyle, ...narrowCellStyle, width: 80 }}>+/-</TableCell>
                                 <TableCell sx={{ ...topHeaderCellStyle, ...narrowCellStyle, width: 70 }}>
                                     Preferred State
                                 </TableCell>
@@ -175,12 +183,18 @@ export const Scenario = () => {
                                         <TableCell sx={{ ...cellStyle, wordBreak: 'break-word' }}>
                                             {concept.name}
                                         </TableCell>
-                                        <TableCell sx={{ ...cellStyle, ...narrowCellStyle }}>
+                                        <TableCell
+                                            sx={{
+                                                ...cellStyle,
+                                                ...getValueCellStyle({ color: theme.palette.tabs.scenario, hasValue: isClamped }),
+                                            }}
+                                        >
                                             <NormalizedNumberInput
                                                 value={influence}
                                                 emptyValue={0}
+                                                showSlider
                                                 onCommit={(val) => onOverrideChange(concept.id, 'influence', val)}
-                                                sx={{ width: '100%' }}
+                                                sx={getValueInputStyle({ color: theme.palette.tabs.scenario })}
                                             />
                                         </TableCell>
                                         <TableCell sx={{ ...cellStyle, ...narrowCellStyle, wordBreak: 'break-word' }}>

@@ -1,3 +1,5 @@
+import { alpha } from '@mui/material';
+
 export const baseCellStyle = {
     borderBottom: 'none',
     borderRight: '1px solid',
@@ -213,3 +215,37 @@ export const hit_area = {
         cursor: 'pointer',
     },
 };
+
+// The value cells of the matrix and scenario tables share one look; `color` is the tab's palette color
+// (purple for the matrix, red for the scenario).
+export const getValueCellStyle = ({ color, hasValue }) => ({
+    position: 'relative',
+    padding: 0,
+    ...(hasValue && {
+        '&::before': {
+            content: '""',
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: alpha(color, 0.1),
+            zIndex: 0,
+        },
+    }),
+});
+
+export const getValueInputStyle = ({ color }) => ({
+    textAlign: 'center',
+    position: 'relative',
+    zIndex: 1,
+    border: 'none',
+    backgroundColor: 'transparent',
+    padding: 1,
+    height: '100%',
+    width: '100%',
+    fontSize: '1rem',
+    '&:focus': {
+        outline: `2px solid ${color}`,
+        // Above neighboring cells' inputs (1) so the outline isn't cut off, but below the sticky
+        // headers (3-4) so a focused cell scrolled under one doesn't draw over it.
+        zIndex: 2,
+    },
+});

@@ -19,11 +19,6 @@ export const parseScenarioId = (id) => {
     return { appId, name, index };
 };
 
-export const findRelationship = (influencer, influencee) => {
-    const relationships = influencer?.relationships || [];
-    return relationships.find(({ id }) => influencee.id === id);
-};
-
 export const createModel = ({ appId, filename = 'Model', scenarioName = 'Scenario' }) => ({
     groupNames: {
         0: '',
@@ -64,25 +59,3 @@ export const isEmpty = (value) => value.trim() === '';
 // Matches mentalmodeler-js's src/utils/util.js normalize() exactly (name, signature, defaults) —
 // that's where influence values are normalized on blur in the concept-map editor itself.
 export const normalize = (value, min = -1, max = 1) => Math.max(Math.min(value, max), min);
-
-export const getMatrixRows = (concepts = []) => [
-    ['', ...concepts.map(({ name }) => name)],
-    ...concepts.map((concept) => [
-        concept.name,
-        ...concepts.map((_concept) => findRelationship(concept, _concept)?.influence ?? ''),
-    ]),
-];
-
-// Canonical "answer key" export for mm-compare: strips x/y layout so a loaded
-// file carries no visual map, and flags compareRef so -suite's own load path
-// refuses to reopen it (loosely discourages students from viewing the answer).
-export const toCompareRefModel = (model) => ({
-    ...model,
-    compareRef: true,
-    concepts: (model?.concepts || []).map((concept) => {
-        const stripped = { ...concept };
-        delete stripped.x;
-        delete stripped.y;
-        return stripped;
-    }),
-});

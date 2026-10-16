@@ -1,6 +1,6 @@
 import { Table, TableContainer, TableHead, TableRow, TableCell, TableBody, alpha } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { findRelationship } from '../../utils/utils';
+import { findRelationship } from 'mm-modules';
 import { useEffect, useRef } from 'react';
 import { useTheme } from '@emotion/react';
 import {

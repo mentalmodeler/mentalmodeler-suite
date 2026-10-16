@@ -97,6 +97,7 @@ export const Matrix = () => {
                                                 id={`${concept.id}-${_concept.id}-input`}
                                                 value={influence}
                                                 emptyValue=""
+                                                showSlider
                                                 onCommit={(val) => onCommit(concept.id, _concept.id, val)}
                                                 sx={{
                                                     textAlign: 'center',

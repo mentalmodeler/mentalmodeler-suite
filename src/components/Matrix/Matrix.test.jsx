@@ -106,3 +106,67 @@ describe('Matrix editing', () => {
         expect(relationshipOf(store, 'a', 'b')?.influence).toBe(1);
     });
 });
+
+// MUI recomputes the value from the mouseup's position, so the release must carry the same clientX.
+const dragTo = (fraction) => {
+    const root = document.querySelector('.MuiSlider-root');
+    root.getBoundingClientRect = () => ({
+        left: 0,
+        right: 100,
+        width: 100,
+        top: 0,
+        bottom: 10,
+        height: 10,
+        x: 0,
+        y: 0,
+    });
+    fireEvent.mouseDown(root, { clientX: fraction * 100, buttons: 1 });
+    fireEvent.mouseUp(document, { clientX: fraction * 100 });
+};
+
+describe('Matrix cell slider', () => {
+    it('creates a connection when the slider is released on a value in a blank cell', () => {
+        const store = makeStore();
+        const cell = renderMatrix(store);
+        fireEvent.mouseDown(cell('a', 'b'));
+        dragTo(0.7);
+        expect(relationshipOf(store, 'a', 'b')?.influence).toBe(0.4);
+        expect(cell('a', 'b').value).toBe('0.4');
+    });
+
+    it('does not create a connection when the slider is released on 0 in a blank cell', () => {
+        const store = makeStore();
+        const cell = renderMatrix(store);
+        fireEvent.mouseDown(cell('a', 'b'));
+        dragTo(0.5);
+        expect(relationshipOf(store, 'a', 'b')).toBeUndefined();
+    });
+
+    it('updates an existing connection', () => {
+        const store = makeStore([{ id: 'b', influence: 0.5, notes: 'keep me', confidence: 2 }]);
+        const cell = renderMatrix(store);
+        fireEvent.mouseDown(cell('a', 'b'));
+        dragTo(0.25); // -0.5
+        expect(relationshipOf(store, 'a', 'b')?.influence).toBe(-0.5);
+    });
+
+    it('keeps the connection, and its notes, when the slider is released on 0', () => {
+        const store = makeStore([{ id: 'b', influence: 0.5, notes: 'keep me', confidence: 2 }]);
+        const cell = renderMatrix(store);
+        fireEvent.mouseDown(cell('a', 'b'));
+        dragTo(0.5);
+        const relationship = relationshipOf(store, 'a', 'b');
+        expect(relationship).toBeDefined();
+        expect(relationship.influence).toBe(0);
+        expect(relationship.notes).toBe('keep me');
+    });
+
+    it('does not write anything when tabbing through a cell', () => {
+        const store = makeStore([{ id: 'b', influence: '' }]);
+        const before = store.getState().models.selectedModel;
+        const cell = renderMatrix(store);
+        fireEvent.focus(cell('a', 'b'));
+        fireEvent.blur(cell('a', 'b'));
+        expect(store.getState().models.selectedModel).toBe(before);
+    });
+});

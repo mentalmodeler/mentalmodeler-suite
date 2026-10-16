@@ -174,3 +174,80 @@ describe('NormalizedNumberInput slider', () => {
         expect(document.querySelector('[data-testid="ArrowDropDownIcon"]').getAttribute('aria-hidden')).toBe('true');
     });
 });
+
+describe('NormalizedNumberInput slider thumb and focus', () => {
+    const stubTrack = () => {
+        sliderRoot().getBoundingClientRect = () => ({
+            left: 0,
+            right: 100,
+            width: 100,
+            top: 0,
+            bottom: 10,
+            height: 10,
+            x: 0,
+            y: 0,
+        });
+    };
+    const thumb = () => document.querySelector('.MuiSlider-thumb');
+
+    it('commits nothing when the thumb is clicked off-centre without moving', () => {
+        // MUI jumps to the pointer position even on the thumb, so a plain click would nudge the value.
+        const { onCommit, input } = setup({ value: '', emptyValue: '', showSlider: true });
+        openSlider(input);
+        stubTrack();
+        fireEvent.mouseDown(thumb(), { clientX: 52, buttons: 1 });
+        fireEvent.mouseUp(document, { clientX: 52 });
+        expect(onCommit).not.toHaveBeenCalled();
+        expect(input.value).toBe('');
+    });
+
+    it('does not round a stored value when its thumb is clicked', () => {
+        const { onCommit, input } = setup({ value: 0.333, showSlider: true });
+        openSlider(input);
+        stubTrack();
+        fireEvent.mouseDown(thumb(), { clientX: 67, buttons: 1 });
+        fireEvent.mouseUp(document, { clientX: 67 });
+        expect(onCommit).not.toHaveBeenCalled();
+        expect(input.value).toBe('0.333');
+    });
+
+    it('drags from the thumb: text follows the move and one commit on release', () => {
+        const { onCommit, input } = setup({ value: '', emptyValue: '', showSlider: true });
+        openSlider(input);
+        stubTrack();
+        fireEvent.mouseDown(thumb(), { clientX: 52, buttons: 1 });
+        fireEvent.mouseMove(document, { clientX: 70, buttons: 1 });
+        expect(input.value).toBe('0.4');
+        fireEvent.mouseUp(document, { clientX: 70 });
+        expect(onCommit).toHaveBeenCalledTimes(1);
+        expect(onCommit).toHaveBeenCalledWith(0.4);
+    });
+
+    it('keeps focus in the text input, not the hidden slider, after a drag', () => {
+        const { input } = setup({ value: 0.5, showSlider: true });
+        openSlider(input);
+        dragTo(0.7);
+        expect(document.activeElement).toBe(input);
+    });
+
+    it('commits once, and not the half-typed draft separately, when a drag follows typing', () => {
+        const { onCommit, input } = setup({ value: 0.5, showSlider: true });
+        input.focus();
+        openSlider(input);
+        fireEvent.change(input, { target: { value: '0.7' } });
+        dragTo(0.25); // -0.5
+        expect(onCommit.mock.calls).toEqual([[-0.5]]);
+    });
+
+    it('keeps a half-typed draft when the thumb is clicked without moving', () => {
+        const { onCommit, input } = setup({ value: 0.5, showSlider: true });
+        input.focus();
+        openSlider(input);
+        fireEvent.change(input, { target: { value: '0.7' } });
+        stubTrack();
+        fireEvent.mouseDown(thumb(), { clientX: 75, buttons: 1 });
+        fireEvent.mouseUp(document, { clientX: 75 });
+        expect(input.value).toBe('0.7');
+        expect(onCommit).not.toHaveBeenCalled();
+    });
+});

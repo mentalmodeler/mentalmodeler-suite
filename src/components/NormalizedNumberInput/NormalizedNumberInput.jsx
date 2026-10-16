@@ -38,12 +38,22 @@ export const NormalizedNumberInput = ({
     const [draft, setDraft] = useState(value ?? '');
     const [open, setOpen] = useState(false);
     const anchorRef = useRef(null);
+    const inputRef = useRef(null);
+    const paperRef = useRef(null);
+    // Set once the slider has really moved (a drag, or a click on the track), as opposed to a click on the thumb.
+    const movedRef = useRef(false);
+    const grabbedThumbRef = useRef(false);
 
     useEffect(() => {
         setDraft(value ?? '');
     }, [value]);
 
-    const onBlur = () => {
+    const onBlur = (e) => {
+        // Focus moving into the slider (MUI focuses its hidden input on mouse down) is not the user leaving the
+        // cell: don't commit a half-typed draft separately from the drag.
+        if (e?.relatedTarget && paperRef.current?.contains(e.relatedTarget)) {
+            return;
+        }
         const parsed = parseFloat(draft);
         const committed = isNaN(parsed) ? emptyValue : normalize(parsed, min, max);
         setDraft(committed);
@@ -55,6 +65,7 @@ export const NormalizedNumberInput = ({
     const input = (
         <Box
             component="input"
+            ref={inputRef}
             type="number"
             min={min}
             max={max}
@@ -86,7 +97,22 @@ export const NormalizedNumberInput = ({
 
     // A release that ends where the cell already was (a click on the thumb) must not write anything --
     // in particular it must not turn a blank matrix cell into a 0-influence connection.
+    const onSliderChange = (event, v) => {
+        // MUI jumps to the pointer position on mouse down, even on the thumb, so a plain click on the thumb
+        // would nudge the value. Ignore that jump; moves and clicks on the track still count. (MUI replaces the
+        // event's target, so whether the thumb was grabbed is recorded in onMouseDownCapture below.)
+        if (event.type === 'mousedown' && grabbedThumbRef.current) {
+            return;
+        }
+        movedRef.current = true;
+        setDraft(roundTo2(v));
+    };
+
     const onSliderCommit = (_, newValue) => {
+        if (!movedRef.current) {
+            return;
+        }
+        movedRef.current = false;
         const v = roundTo2(newValue);
         const current = toCurrent(value, emptyValue);
         const where = current === '' ? 0 : current; // a blank cell is shown as 0 on the slider
@@ -119,8 +145,15 @@ export const NormalizedNumberInput = ({
                     sx={{ zIndex: (theme) => theme.zIndex.modal }}
                 >
                     <Paper
+                        ref={paperRef}
                         aria-hidden="true"
                         elevation={2}
+                        // The slider is decorative: MUI focuses its hidden input on mouse down, so hand focus
+                        // straight back to the text input (the accessible control).
+                        onMouseDownCapture={(e) => {
+                            grabbedThumbRef.current = !!e.target.closest?.('.MuiSlider-thumb');
+                        }}
+                        onFocus={() => inputRef.current?.focus({ preventScroll: true })}
                         sx={{ px: 1.5, py: 0.5, minWidth: 96, width: anchorRef.current?.offsetWidth }}
                     >
                         <Slider
@@ -130,7 +163,7 @@ export const NormalizedNumberInput = ({
                             step={step}
                             value={sliderValue}
                             tabIndex={-1}
-                            onChange={(_, v) => setDraft(roundTo2(v))}
+                            onChange={onSliderChange}
                             onChangeCommitted={onSliderCommit}
                         />
                     </Paper>

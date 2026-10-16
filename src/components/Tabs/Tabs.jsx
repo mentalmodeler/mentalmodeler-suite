@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { APP_VIEW } from '../../redux/slices/appSlice';
 import { useMemo } from 'react';
 import { saveModelFromConceptMap } from '../../redux/actions/models';
+import { makeScenarioId } from '../../utils/utils';
 
 const a11yProps = (index) => {
     return {
@@ -53,6 +54,7 @@ const _tabs = [
 export const Tabs = () => {
     const dispatch = useDispatch();
     const { view } = useSelector((state) => state.app) || {};
+    const { selectedModel, selectedScenarioId } = useSelector((state) => state.models) || {};
     const activeTab = useMemo(() => _tabs.findIndex(({ value }) => view === value), [view]);
 
     return (
@@ -73,6 +75,25 @@ export const Tabs = () => {
                     // if (_tabs[activeTab].value === APP_VIEW.MODEL) {
                     dispatch(saveModelFromConceptMap(_tabs[activeTab].value));
                     // }
+                    // Landing on Scenario with nothing selected would show an empty prompt, so open the
+                    // model's first scenario when it has one. Every other tab is about the model itself,
+                    // so leave the scenario and put the sidebar selection back on the model.
+                    const [firstScenario] = selectedModel?.scenarios || [];
+                    if (_tabs[newValue].value === APP_VIEW.SCENARIO) {
+                        if (!selectedScenarioId && firstScenario) {
+                            dispatch({
+                                type: 'models/selectScenario',
+                                payload: {
+                                    value: {
+                                        id: makeScenarioId(selectedModel.appId, firstScenario.name, 0),
+                                        appId: selectedModel.appId,
+                                    },
+                                },
+                            });
+                        }
+                    } else if (selectedScenarioId) {
+                        dispatch({ type: 'models/selectModel', payload: { value: selectedModel.appId } });
+                    }
                     dispatch({
                         type: 'app/setField',
                         payload: {

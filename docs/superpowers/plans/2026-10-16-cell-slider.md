@@ -171,7 +171,11 @@ MUI's `Slider` finds its position from the root's bounding rect, so jsdom needs 
 
 ```jsx
 const openSlider = (input) => fireEvent.mouseDown(input);
+// ClickAwayListener starts listening one timeout after mount, so give it that tick before clicking away.
+const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 const sliderRoot = () => document.querySelector('.MuiSlider-root');
+// MUI recomputes the value from the mouseup's position, so the release must carry the same clientX.
+const releaseAt = (fraction) => fireEvent.mouseUp(document, { clientX: fraction * 100 });
 const dragTo = (fraction, { release = true } = {}) => {
     const root = sliderRoot();
     root.getBoundingClientRect = () => ({
@@ -179,7 +183,7 @@ const dragTo = (fraction, { release = true } = {}) => {
     });
     fireEvent.mouseDown(root, { clientX: fraction * 100, buttons: 1 });
     if (release) {
-        fireEvent.mouseUp(document);
+        releaseAt(fraction);
     }
 };
 
@@ -213,7 +217,7 @@ describe('NormalizedNumberInput slider', () => {
         dragTo(0.7, { release: false });
         expect(input.value).toBe('0.4');
         expect(onCommit).not.toHaveBeenCalled();
-        fireEvent.mouseUp(document);
+        releaseAt(0.7);
         expect(onCommit).toHaveBeenCalledWith(0.4);
     });
 
@@ -222,7 +226,7 @@ describe('NormalizedNumberInput slider', () => {
         openSlider(input);
         dragTo(0.65, { release: false }); // 0.3 would be 0.30000000000000004 unrounded
         expect(input.value).toBe('0.3');
-        fireEvent.mouseUp(document);
+        releaseAt(0.65);
     });
 
     it('reverts the preview when the release ends where the cell was', () => {
@@ -251,8 +255,9 @@ describe('NormalizedNumberInput slider', () => {
         expect(input.value).toBe('');
     });
 
-    it('closes on a mouse down outside and on Escape', () => {
+    it('closes on a mouse down outside and on Escape', async () => {
         const { input } = setup({ value: 0.5, showSlider: true });
+        await tick();
         openSlider(input);
         fireEvent.mouseDown(document.body);
         expect(sliderRoot()).toBeNull();
@@ -261,7 +266,7 @@ describe('NormalizedNumberInput slider', () => {
         expect(sliderRoot()).toBeNull();
     });
 
-    it('opens only one slider at a time', () => {
+    it('opens only one slider at a time', async () => {
         const onCommit = vi.fn();
         render(
             <>
@@ -269,6 +274,7 @@ describe('NormalizedNumberInput slider', () => {
                 <NormalizedNumberInput id="two" value={0.2} onCommit={onCommit} showSlider />
             </>,
         );
+        await tick();
         fireEvent.mouseDown(document.getElementById('one'));
         fireEvent.mouseDown(document.getElementById('two'));
         expect(document.querySelectorAll('.MuiSlider-root')).toHaveLength(1);
@@ -544,7 +550,7 @@ const dragTo = (fraction) => {
         left: 0, right: 100, width: 100, top: 0, bottom: 10, height: 10, x: 0, y: 0,
     });
     fireEvent.mouseDown(root, { clientX: fraction * 100, buttons: 1 });
-    fireEvent.mouseUp(document);
+    fireEvent.mouseUp(document, { clientX: fraction * 100 });
 };
 
 describe('Scenario +/- slider', () => {

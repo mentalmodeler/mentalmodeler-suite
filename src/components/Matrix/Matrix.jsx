@@ -3,7 +3,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { findRelationship } from '../../utils/utils';
 import { useEffect, useRef } from 'react';
 import { useTheme } from '@emotion/react';
-import { evenRowCellStyle, oddRowCellStyle, sideHeaderCellStyle, topHeaderCellStyle } from '../../constants/styles';
+import {
+    evenRowCellStyle,
+    getValueCellStyle,
+    getValueInputStyle,
+    oddRowCellStyle,
+    sideHeaderCellStyle,
+    topHeaderCellStyle,
+} from '../../constants/styles';
 import { NormalizedNumberInput } from '../NormalizedNumberInput/NormalizedNumberInput';
 
 export const Matrix = () => {
@@ -78,20 +85,10 @@ export const Matrix = () => {
                                             align="center"
                                             sx={{
                                                 ...cellStyle,
-                                                position: 'relative',
-                                                padding: 0,
-                                                ...(influence !== '' && {
-                                                    '&::before': {
-                                                        content: '""',
-                                                        position: 'absolute',
-                                                        inset: 0,
-                                                        backgroundColor: alpha(theme.palette.tabs.matrix, 0.1),
-                                                        zIndex: 0,
-                                                    },
+                                                ...getValueCellStyle({
+                                                    color: theme.palette.tabs.matrix,
+                                                    hasValue: influence !== '',
                                                 }),
-                                                // '&:focus-within': {
-                                                //     outline: `1px solid ${theme.palette.tabs.matrix}`,
-                                                // },
                                             }}
                                             aria-label={`${concept.name} influences ${_concept.name} ${influence}`}
                                         >
@@ -101,24 +98,7 @@ export const Matrix = () => {
                                                 emptyValue=""
                                                 showSlider
                                                 onCommit={(val) => onCommit(concept.id, _concept.id, val)}
-                                                sx={{
-                                                    textAlign: 'center',
-                                                    position: 'relative',
-                                                    zIndex: 1,
-                                                    border: 'none',
-                                                    backgroundColor: 'transparent',
-                                                    padding: 1,
-                                                    height: '100%',
-                                                    width: '100%',
-                                                    fontSize: '1rem',
-                                                    '&:focus': {
-                                                        outline: `2px solid ${theme.palette.tabs.matrix}`,
-                                                        // Above neighboring cells' inputs (1) so the outline isn't
-                                                        // cut off, but below the sticky headers (3-4) so a focused
-                                                        // cell scrolled under one doesn't draw over it.
-                                                        zIndex: 2,
-                                                    },
-                                                }}
+                                                sx={getValueInputStyle({ color: theme.palette.tabs.matrix })}
                                             />
                                         </TableCell>
                                     );

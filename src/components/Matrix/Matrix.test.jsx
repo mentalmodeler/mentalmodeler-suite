@@ -6,6 +6,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import modelsReducer from '../../redux/slices/modelsSlice';
 import { theme } from '../../constants/theme';
 import { sideHeaderCellStyle } from '../../constants/styles';
+import { alpha } from '@mui/material';
 import { Matrix } from './Matrix';
 
 const makeStore = (relationshipsOfA = []) => {
@@ -188,5 +189,36 @@ describe('Matrix focus and scrolling', () => {
         expect(notCancelled).toBe(true);
         // Leaving the cell is how the browser is stopped from changing the number on wheel.
         expect(document.activeElement).not.toBe(cell('a', 'b'));
+    });
+});
+
+describe('Matrix cell styling', () => {
+    // emotion's rules accumulate across tests, so look only at the rules that target this element's classes.
+    const cssFor = (el) => {
+        const classes = Array.from(el.classList);
+        return Array.from(document.styleSheets)
+            .flatMap((sheet) => Array.from(sheet.cssRules))
+            .filter((rule) => classes.some((name) => rule.selectorText?.includes(`.${name}`)))
+            .map((rule) => rule.cssText)
+            .join('\n');
+    };
+    const matrixTint = alpha(theme.palette.tabs.matrix, 0.1);
+
+    it('tints a cell that has a value, in the matrix color', () => {
+        const cell = renderMatrix(makeStore([{ id: 'b', influence: 0.5 }]));
+        expect(cssFor(cell('a', 'b').closest('td'))).toContain(matrixTint);
+    });
+
+    it('does not tint cells when none has a value', () => {
+        const cell = renderMatrix(makeStore());
+        expect(cssFor(cell('a', 'b').closest('td'))).not.toContain(matrixTint);
+    });
+
+    it('centers the value and outlines the focused cell in the matrix color', () => {
+        const cell = renderMatrix(makeStore());
+        cell('a', 'b').focus();
+        const style = window.getComputedStyle(cell('a', 'b'));
+        expect(style.textAlign).toBe('center');
+        expect(cssFor(cell('a', 'b'))).toContain(`outline: 2px solid ${theme.palette.tabs.matrix}`);
     });
 });

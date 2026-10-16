@@ -5,8 +5,10 @@ import { ThemeProvider as EmotionThemeProvider } from '@emotion/react';
 import { configureStore } from '@reduxjs/toolkit';
 import { describe, expect, it, vi } from 'vitest';
 import modelsReducer from '../../redux/slices/modelsSlice';
+import { sideHeaderCellStyle } from '../../constants/styles';
 import { theme } from '../../constants/theme';
 import { makeScenarioId } from '../../utils/utils';
+import { alpha } from '@mui/material';
 import { Scenario } from './Scenario';
 
 vi.mock('../../services/scenarioEngine', () => ({
@@ -14,8 +16,8 @@ vi.mock('../../services/scenarioEngine', () => ({
 }));
 vi.mock('./ScenarioChart', () => ({ ScenarioChart: () => null }));
 
-const makeStore = () => {
-    const scenario = { name: 'S1', concepts: [] };
+const makeStore = (scenarioConcepts = []) => {
+    const scenario = { name: 'S1', concepts: scenarioConcepts };
     const model = {
         appId: 'm1',
         info: {},
@@ -90,5 +92,57 @@ describe('Scenario +/- slider', () => {
         fireEvent.mouseDown(inputs[0]);
         dragTo(0.5);
         expect(store.getState().models.selectedScenario.concepts).toEqual([]);
+    });
+});
+
+describe('Scenario cell styling', () => {
+    // emotion's rules accumulate across tests, so look only at the rules that target this element's classes.
+    const cssFor = (el) => {
+        const classes = Array.from(el.classList);
+        return Array.from(document.styleSheets)
+            .flatMap((sheet) => Array.from(sheet.cssRules))
+            .filter((rule) => classes.some((name) => rule.selectorText?.includes(`.${name}`)))
+            .map((rule) => rule.cssText)
+            .join('\n');
+    };
+    const scenarioTint = alpha(theme.palette.tabs.scenario, 0.1);
+    const renderScenario = (store) =>
+        render(
+            <Provider store={store}>
+                <ThemeProvider theme={theme}>
+                    <EmotionThemeProvider theme={theme}>
+                        <Scenario />
+                    </EmotionThemeProvider>
+                </ThemeProvider>
+            </Provider>,
+        );
+
+    it('tints a +/- cell that has a value, in the scenario color', () => {
+        renderScenario(makeStore([{ id: 'a', selected: true, influence: 0.5 }]));
+        const cell = document.querySelector('table input[type="number"]').closest('td');
+        expect(cssFor(cell)).toContain(scenarioTint);
+    });
+
+    it('does not tint +/- cells when none has a value', () => {
+        renderScenario(makeStore());
+        const cell = document.querySelector('table input[type="number"]').closest('td');
+        expect(cssFor(cell)).not.toContain(scenarioTint);
+    });
+
+    it('centers the value and outlines the focused cell in the scenario color', () => {
+        renderScenario(makeStore());
+        const input = document.querySelector('table input[type="number"]');
+        input.focus();
+        expect(window.getComputedStyle(input).textAlign).toBe('center');
+        expect(cssFor(input)).toContain(`outline: 2px solid ${theme.palette.tabs.scenario}`);
+    });
+
+    it('keeps a focused cell below the sticky headers like the matrix does', () => {
+        renderScenario(makeStore());
+        const input = document.querySelector('table input[type="number"]');
+        input.focus();
+        const { zIndex } = window.getComputedStyle(input);
+        expect(Number(zIndex)).toBeGreaterThan(1);
+        expect(Number(zIndex)).toBeLessThan(sideHeaderCellStyle.zIndex);
     });
 });

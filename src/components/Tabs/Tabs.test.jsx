@@ -86,3 +86,27 @@ describe('Scenario tab', () => {
         expect(store.getState().models.selectedScenarioId).toBe('');
     });
 });
+
+describe.each(['Model', 'Matrix', 'Preferred State & Metrics', 'Info'])('%s tab', (label) => {
+    const scenarios = [{ name: 'First', concepts: [] }];
+
+    it('puts the sidebar selection back on the model when a scenario was selected', () => {
+        const store = makeStore({ scenarios, selectedScenarioIndex: 0, view: APP_VIEW.SCENARIO });
+        render(
+            <Provider store={store}>
+                <ThemeProvider theme={theme}>
+                    <EmotionThemeProvider theme={theme}>
+                        <Tabs />
+                    </EmotionThemeProvider>
+                </ThemeProvider>
+            </Provider>,
+        );
+        fireEvent.click(screen.getByRole('tab', { name: new RegExp(`^${label}`) }));
+        const { models, app } = store.getState();
+        expect(app.view).not.toBe(APP_VIEW.SCENARIO);
+        expect(models.selectedScenarioId).toBe('');
+        expect(models.selectedScenario).toBeNull();
+        expect(models.selectedId).toBe('m1');
+        expect(models.selectedModel.appId).toBe('m1');
+    });
+});

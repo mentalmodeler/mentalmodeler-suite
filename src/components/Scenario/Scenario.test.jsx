@@ -146,3 +146,46 @@ describe('Scenario cell styling', () => {
         expect(Number(zIndex)).toBeLessThan(sideHeaderCellStyle.zIndex);
     });
 });
+
+describe('Scenario row states', () => {
+    const renderScenario = (store) =>
+        render(
+            <Provider store={store}>
+                <ThemeProvider theme={theme}>
+                    <EmotionThemeProvider theme={theme}>
+                        <Scenario />
+                    </EmotionThemeProvider>
+                </ThemeProvider>
+            </Provider>,
+        );
+
+    it('offers a checkbox for a row with no value', () => {
+        renderScenario(makeStore());
+        expect(document.querySelectorAll('table input[type="checkbox"]')).toHaveLength(2);
+    });
+
+    it('drops the checkbox for a row that has a value', () => {
+        renderScenario(makeStore([{ id: 'a', selected: true, influence: 0.5 }]));
+        expect(document.querySelectorAll('table input[type="checkbox"]')).toHaveLength(1);
+        expect(document.querySelector('table input[type="number"]').value).toBe('0.5');
+    });
+
+    it('hides the value input for an unchecked row until it is re-checked', () => {
+        const store = makeStore([{ id: 'a', selected: false, influence: 0 }]);
+        renderScenario(store);
+        expect(document.querySelectorAll('table input[type="number"]')).toHaveLength(1);
+        const checkbox = document.querySelector('table input[type="checkbox"]');
+        expect(checkbox.checked).toBe(false);
+        fireEvent.click(checkbox);
+        expect(document.querySelectorAll('table input[type="number"]')).toHaveLength(2);
+    });
+
+    it('leaves a focused value input on wheel so the table can scroll', () => {
+        renderScenario(makeStore());
+        const input = document.querySelector('table input[type="number"]');
+        input.focus();
+        expect(document.activeElement).toBe(input);
+        fireEvent.wheel(input);
+        expect(document.activeElement).not.toBe(input);
+    });
+});

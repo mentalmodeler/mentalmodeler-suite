@@ -4,9 +4,8 @@ import Papa from 'papaparse';
 import writeExcelFile from 'write-excel-file/browser';
 import { Flex } from '../IFL/ifl';
 import { useDispatch, useSelector } from 'react-redux';
-import { importCSV, loadAndParse } from 'mm-modules';
+import { getMatrixRows, importCSV, loadAndParse, toCompareRefModel } from 'mm-modules';
 import { createFileInput, downloadBlob } from '../../utils/io';
-import { getMatrixRows, toCompareRefModel } from '../../utils/utils';
 import { saveModelFromConceptMap } from '../../redux/actions/models';
 import { printModel } from '../../services/print';
 

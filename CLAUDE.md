@@ -9,7 +9,7 @@ Mental Modeler Suite 2.0 — a React shell app for managing multiple fuzzy cogni
 ## Commands
 
 ```bash
-npm run dev       # vite dev server on 0.0.0.0:8081
+npm run dev       # vite dev server on localhost:8081 (deliberately not 0.0.0.0; use `vite --host` for LAN testing)
 npm run build     # vite build
 npm run preview   # preview the production build
 npm run lint      # eslint . --ext js,jsx --max-warnings 0

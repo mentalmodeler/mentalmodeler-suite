@@ -32,6 +32,9 @@ import { ScenarioChart } from './ScenarioChart';
 // content once a column is this narrow -- these columns need the room back.
 const narrowCellStyle = { paddingInline: '4px' };
 
+// Rows that aren't driving the scenario (clamped by a value, or unchecked) read as dimmed, like the legacy app.
+const DIMMED_OPACITY = 0.65;
+
 const SQUASH_FUNCTIONS = [
     { value: 'sigmoid', label: 'Sigmoid' },
     { value: 'hyperbolic tangent', label: 'Hyperbolic Tangent' },
@@ -93,6 +96,14 @@ export const Scenario = () => {
         dispatch({ type: 'models/updateScenarioName', payload: { name } });
     };
 
+    // A focused number input changes its value on wheel. preventDefault() would stop that but also stops the
+    // table scrolling, so leave the input instead: no value change, and the scroll goes through.
+    const onTableWheel = (e) => {
+        if (document.activeElement === e.target && e.target.type === 'number') {
+            e.target.blur();
+        }
+    };
+
     const onOverrideChange = (conceptId, field, value) => {
         const current = getScenarioOverride(selectedScenario, conceptId);
         dispatch({
@@ -148,7 +159,13 @@ export const Scenario = () => {
                 }}
             >
                 <TableContainer sx={{ overflow: 'auto', flex: '0 0 424px', minWidth: 0, overscrollBehavior: 'none' }}>
-                    <Table size="small" stickyHeader aria-label="Scenario concept table" sx={{ tableLayout: 'fixed' }}>
+                    <Table
+                        size="small"
+                        stickyHeader
+                        aria-label="Scenario concept table"
+                        sx={{ tableLayout: 'fixed' }}
+                        onWheel={onTableWheel}
+                    >
                         <TableHead sx={{ '& .MuiTableCell-head': { verticalAlign: 'bottom' } }}>
                             <TableRow>
                                 <TableCell sx={{ ...topHeaderCellStyle, ...narrowCellStyle, width: 36 }} />
@@ -167,44 +184,68 @@ export const Scenario = () => {
                                 const cellStyle = i % 2 === 0 ? oddRowCellStyle : evenRowCellStyle;
                                 const { selected, influence } = getScenarioOverride(selectedScenario, concept.id);
                                 const isClamped = !!influence;
+                                const dimmedStyle = isClamped || !selected ? { opacity: DIMMED_OPACITY } : {};
                                 const preferredState = parseFloat(concept.preferredState || 0);
                                 const actualState = resultById.get(concept.id) || 0;
                                 return (
                                     <TableRow key={concept.id}>
                                         <TableCell sx={{ ...cellStyle, ...narrowCellStyle }}>
-                                            <Checkbox
-                                                checked={selected}
-                                                size="small"
-                                                onChange={(e) =>
-                                                    onOverrideChange(concept.id, 'selected', e.target.checked)
-                                                }
-                                            />
+                                            {/* A value puts the concept in the scenario for certain: nothing to toggle. */}
+                                            {!isClamped && (
+                                                <Checkbox
+                                                    checked={selected}
+                                                    size="small"
+                                                    onChange={(e) =>
+                                                        onOverrideChange(concept.id, 'selected', e.target.checked)
+                                                    }
+                                                />
+                                            )}
                                         </TableCell>
-                                        <TableCell sx={{ ...cellStyle, wordBreak: 'break-word' }}>
+                                        <TableCell sx={{ ...cellStyle, ...dimmedStyle, wordBreak: 'break-word' }}>
                                             {concept.name}
                                         </TableCell>
                                         <TableCell
                                             sx={{
                                                 ...cellStyle,
-                                                ...getValueCellStyle({ color: theme.palette.tabs.scenario, hasValue: isClamped }),
+                                                ...getValueCellStyle({
+                                                    color: theme.palette.tabs.scenario,
+                                                    hasValue: isClamped,
+                                                }),
                                             }}
                                         >
-                                            <NormalizedNumberInput
-                                                value={influence}
-                                                emptyValue={0}
-                                                showSlider
-                                                onCommit={(val) => onOverrideChange(concept.id, 'influence', val)}
-                                                sx={getValueInputStyle({ color: theme.palette.tabs.scenario })}
-                                            />
+                                            {/* Unchecked means out of the scenario: no value to enter until re-checked. */}
+                                            {selected && (
+                                                <NormalizedNumberInput
+                                                    value={influence}
+                                                    emptyValue={0}
+                                                    showSlider
+                                                    onCommit={(val) => onOverrideChange(concept.id, 'influence', val)}
+                                                    sx={getValueInputStyle({ color: theme.palette.tabs.scenario })}
+                                                />
+                                            )}
                                         </TableCell>
-                                        <TableCell sx={{ ...cellStyle, ...narrowCellStyle, wordBreak: 'break-word' }}>
+                                        <TableCell
+                                            sx={{
+                                                ...cellStyle,
+                                                ...narrowCellStyle,
+                                                ...dimmedStyle,
+                                                wordBreak: 'break-word',
+                                            }}
+                                        >
                                             {!isClamped && preferredState !== 0
                                                 ? preferredState > 0
                                                     ? 'Increase'
                                                     : 'Decrease'
                                                 : ''}
                                         </TableCell>
-                                        <TableCell sx={{ ...cellStyle, ...narrowCellStyle, wordBreak: 'break-word' }}>
+                                        <TableCell
+                                            sx={{
+                                                ...cellStyle,
+                                                ...narrowCellStyle,
+                                                ...dimmedStyle,
+                                                wordBreak: 'break-word',
+                                            }}
+                                        >
                                             {!isClamped && actualState !== 0
                                                 ? actualState > 0
                                                     ? 'Increase'

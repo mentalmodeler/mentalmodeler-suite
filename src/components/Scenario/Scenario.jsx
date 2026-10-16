@@ -147,13 +147,13 @@ export const Scenario = () => {
                     transition: 'opacity 150ms',
                 }}
             >
-                <TableContainer sx={{ overflow: 'auto', flex: '0 0 400px', minWidth: 0, overscrollBehavior: 'none' }}>
+                <TableContainer sx={{ overflow: 'auto', flex: '0 0 424px', minWidth: 0, overscrollBehavior: 'none' }}>
                     <Table size="small" stickyHeader aria-label="Scenario concept table" sx={{ tableLayout: 'fixed' }}>
                         <TableHead sx={{ '& .MuiTableCell-head': { verticalAlign: 'bottom' } }}>
                             <TableRow>
                                 <TableCell sx={{ ...topHeaderCellStyle, ...narrowCellStyle, width: 36 }} />
                                 <TableCell sx={topHeaderCellStyle}>Component</TableCell>
-                                <TableCell sx={{ ...topHeaderCellStyle, ...narrowCellStyle, width: 56 }}>+/-</TableCell>
+                                <TableCell sx={{ ...topHeaderCellStyle, ...narrowCellStyle, width: 80 }}>+/-</TableCell>
                                 <TableCell sx={{ ...topHeaderCellStyle, ...narrowCellStyle, width: 70 }}>
                                     Preferred State
                                 </TableCell>

@@ -1,7 +1,6 @@
-/* eslint-disable react/prop-types */
 import debounce from 'lodash.debounce';
 // import { Box, Button, Flex } from "@indeed/ifl-components";
-import { Box, Button, IconButton } from '@mui/material';
+import { Box, Button } from '@mui/material';
 // import { SystemStyleObject } from "@indeed/ifl-css";
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
@@ -155,12 +154,12 @@ export const ScrollCarousel = ({
         : children;
 
     // Debounced scroll callback to snap to position after scrolling is complete
+    // Not attached right now (see the commented-out onScroll props below); kept for re-enabling snap-after-scroll.
+    // eslint-disable-next-line no-unused-vars
     const onScroll = debounce((e) => {
         if (applySnap) {
             const scrollLeft = e.target.scrollLeft;
-            const width = e.target.clientWidth;
             const items = getItemWrappers(e.target);
-            const adj = paddingInline; //  width / 2
             // '@ts-expect-error' issue with findLastIndex https://github.com/microsoft/TypeScript/issues/49453
             const activeIndex = [...(items || [])].findLastIndex((item) => {
                 // console.log('scrollLeft:', scrollLeft, ', item.offsetLeft:', item.offsetLeft, ', width:', width);

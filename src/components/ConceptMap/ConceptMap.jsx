@@ -21,6 +21,8 @@ export const ConceptMap = () => {
             console.log('selectedModel:', selectedModel);
             load(selectedModel);
         }
+        // intentionally keyed on selectedId only: reload the canvas when the selection changes, not on every model edit
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedId]);
 
     return <Box ref={contentRef} sx={{ backgroundColor: 'common.white', height: '100%' }} />;

@@ -3,12 +3,7 @@ import { useEffect, useState } from 'react';
 const DEFAULT_OPTIONS = {
     config: { attributes: true, childList: true, subtree: true },
 };
-export const useMutation = (
-    targetEl,
-    cb,
-    options = DEFAULT_OPTIONS,
-    disconnect
-) => {
+export const useMutation = (targetEl, cb, options = DEFAULT_OPTIONS, disconnect) => {
     const [observer, setObserver] = useState(null);
 
     useEffect(() => {

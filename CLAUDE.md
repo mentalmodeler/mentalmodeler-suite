@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Mental Modeler Suite 2.0 — a React shell app for managing multiple fuzzy cognitive map ("Mental Modeler") models. It is a workspace/IDE around a **legacy pre-built concept-map editor** rather than a from-scratch modeling tool: the actual concept-map canvas is a separately-built bundle loaded via `<script>` tags in `index.html`, and this app's React code is a file browser, tab bar, and Redux state layer wrapped around it.
+Mental Modeler Suite 2.0 — a React shell app for managing multiple fuzzy cognitive map ("Mental Modeler") models. It is a workspace/IDE around a **separately-built concept-map editor** rather than a from-scratch modeling tool: the actual concept-map canvas is the `mentalmodeler-js` package (linked via `file:../mentalmodeler-js`, see below), and this app's React code is a file browser, tab bar, and Redux state layer wrapped around it.
 
 ## Commands
 
@@ -19,7 +19,7 @@ npm run test:watch
 
 Vitest is pinned to 0.34.x because it is the last line that shares this repo's Vite 4. Components that read the theme via `@emotion/react`'s `useTheme` (e.g. `Matrix`) need an `@emotion/react` `ThemeProvider` in tests: under Vitest MUI's `ThemeProvider` does not fill that same context instance.
 
-There is no test runner configured in this repo. Node version is pinned via `.nvmrc` (`lts/hydrogen`, i.e. Node 18).
+Node version is pinned via `.nvmrc` (`lts/hydrogen`, i.e. Node 18).
 
 ## Architecture
 
@@ -33,7 +33,7 @@ There is no test runner configured in this repo. Node version is pinned via `.nv
 
 ### mm-modules: the MMP file format library
 
-`mm-modules` (`package.json` dependency `"mm-modules": "file:../mm-modules"`) is a sibling local package providing the pure-JS logic for the `.mmp` model file format: `loadFile`/`loadURL` (read a file/URL), `parseMMP` (parse MMP XML/JSON into the app's model shape), `compareModels`, `runScenario`, `getMetrics`, and the export helpers `getMatrixRows`/`toCompareRefModel`/`findRelationship`. This is where model-file parsing/scenario-running logic belongs — it's intentionally decoupled from the ConceptMap editor bundle and from React. Because it's linked via `file:../mm-modules`, changes to that sibling repo require `npm install` (or a relink) in this repo to pick up.
+`mm-modules` (`package.json` dependency `"mm-modules": "file:../mm-modules"`) is a sibling local package providing the pure-JS logic for the `.mmp` model file format: `loadFile`/`loadURL` (read a file/URL), `loadAndParse`/`loadAndParseURL` (load + parse in one step), `parseMMP` (parse MMP XML/JSON into the app's model shape), `importCSV`, `compareModels`, `runScenario`, `getMetrics`, and the matrix/compare-ref helpers `getMatrixRows`, `toCompareRefModel` and `findRelationship`. This is where model-file parsing/scenario-running logic belongs — it's intentionally decoupled from the ConceptMap editor bundle and from React. Because it's linked via `file:../mm-modules`, changes to that sibling repo require `npm install` (or a relink) in this repo to pick up.
 
 `src/models/**/*.mmp` and related fixture files (`.mmp.json`, `.emp`, etc.) are sample/test model files used during development, not build assets.
 

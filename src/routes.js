@@ -126,7 +126,6 @@ export const routes = [
     //         horizontal: 'right',
     //     },
     // },
-
     // {
     //     Component: NoticeMeAnimationPage,
     //     title: 'Notice Me Animation',

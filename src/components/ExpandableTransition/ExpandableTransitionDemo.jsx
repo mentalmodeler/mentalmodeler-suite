@@ -18,7 +18,7 @@ const items =
         .slice(0, 6);
 
 export const ExpandableTransitionDemo = () => {
-    const [isExpanded, setIsExpanded] = useState(true);
+    const [isExpanded] = useState(true);
     return (
         <Box
             sx={{

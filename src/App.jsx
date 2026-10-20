@@ -59,6 +59,8 @@ const App = () => {
             };
             loadInitFile();
         }
+        // mount-only: load the ?demo model once
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

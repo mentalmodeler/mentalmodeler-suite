@@ -60,7 +60,6 @@ Two slices (`src/redux/data/rootReducer.js`):
 
 - `src/routes.js` is entirely commented out (leftover from a different template) and is not imported anywhere — routing in this app is driven by `app.view`, not `react-router`, despite `react-router-dom` being a dependency.
 - `src/components/ProjectDialog/ProjectDialog.jsx` and `src/context/AppContext/AppContext.jsx` reference each other but neither is imported by `App.jsx` or any live component — treat as unused unless you're specifically wiring them back in.
-- `src/utils/io.js`'s `saveFile`/`writeLocalFile` reference undefined globals (`getJson`, `store`, `saveAs`) and will throw if called — only `createFileInput` in that file is actually used (by `GlobalNav`).
 
 ## Conventions
 

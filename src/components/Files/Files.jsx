@@ -16,6 +16,7 @@ export const Files = () => {
 
     useEffect(() => {
         console.log('models:', models);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [models.length]);
 
     return (

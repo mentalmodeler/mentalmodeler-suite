@@ -19,7 +19,7 @@ npm run test:watch
 
 Vitest is pinned to 0.34.x because it is the last line that shares this repo's Vite 4. Components that read the theme via `@emotion/react`'s `useTheme` (e.g. `Matrix`) need an `@emotion/react` `ThemeProvider` in tests: under Vitest MUI's `ThemeProvider` does not fill that same context instance.
 
-Node version is pinned via `.nvmrc` (`lts/hydrogen`, i.e. Node 18).
+Node version is pinned via `.nvmrc` (`24`).
 
 ## Architecture
 

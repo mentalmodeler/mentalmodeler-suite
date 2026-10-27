@@ -33,9 +33,13 @@ Node version is pinned via `.nvmrc` (`24`).
 
 ### mm-modules: the MMP file format library
 
-`mm-modules` (`package.json` dependency `"mm-modules": "file:../mm-modules"`) is a sibling local package providing the pure-JS logic for the `.mmp` model file format: `loadFile`/`loadURL` (read a file/URL), `loadAndParse`/`loadAndParseURL` (load + parse in one step), `parseMMP` (parse MMP XML/JSON into the app's model shape), `importCSV`, `compareModels`, `runScenario`, `getMetrics`, and the matrix/compare-ref helpers `getMatrixRows`, `toCompareRefModel` and `findRelationship`. This is where model-file parsing/scenario-running logic belongs — it's intentionally decoupled from the ConceptMap editor bundle and from React. Because it's linked via `file:../mm-modules`, changes to that sibling repo require `npm install` (or a relink) in this repo to pick up.
+`mm-modules` (`package.json` dependency `"mm-modules": "file:../mm-modules"`) is a sibling local package providing the pure-JS logic for the `.mmp` model file format: `loadFile`/`loadURL` (read a file/URL), `loadAndParse`/`loadAndParseURL` (load + parse in one step), `parseMMP` (parse MMP XML/JSON into the app's model shape), `importCSV`, `compareModels`, `runScenario`, `runInference` (the Scenario tab's engine, see below), `getMetrics`, and the matrix/compare-ref helpers `getMatrixRows`, `toCompareRefModel` and `findRelationship`. This is where model-file parsing/scenario-running logic belongs — it's intentionally decoupled from the ConceptMap editor bundle and from React. Because it's linked via `file:../mm-modules`, changes to that sibling repo require `npm install` (or a relink) in this repo to pick up.
 
 `src/models/**/*.mmp` and related fixture files (`.mmp.json`, `.emp`, etc.) are sample/test model files used during development, not build assets.
+
+### Scenario settings
+
+Each scenario carries `settings: { rule, squash, lambda, noiseThreshold }` (saved with the model, since saving serializes the whole model). Edited in the Scenario tab header (`ScenarioSettings.jsx`) via the `models/setScenarioSettings` reducer, which merges partial settings into the selected scenario. A scenario with no `settings` reads and runs as the defaults (`normalizeScenarioSettings` from `mm-modules`: Kosko, sigmoid, lambda 1, threshold 0 = what the tab did before) and is not rewritten by being displayed. `services/scenarioEngine.js` `runScenarioCalculation({ model, scenario })` is the one call into `mm-modules`' `runInference`; an influence of 0 on a scenario concept still means "not clamped" (the engine itself can clamp to 0). The numeric inputs clamp out-of-range entries on blur like every other numeric cell.
 
 ### App shell layout
 

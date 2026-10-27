@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
-import storage from 'redux-persist/lib/storage/session';
+// The ES build, not /lib: Vite 8 hands back the whole CommonJS module.exports object for a default import of /lib.
+import storage from 'redux-persist/es/storage/session';
 import rootReducer from './rootReducer';
 
 const persistConfig = {

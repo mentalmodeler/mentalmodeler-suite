@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box, ClickAwayListener, Paper, Popper, Slider } from '@mui/material';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+// A named import, like the rest of the app: Vite 8 hands back the whole CommonJS module.exports object for a default import.
+import { ArrowDropDown as ArrowDropDownIcon } from '@mui/icons-material';
 import { normalize } from '../../utils/utils';
 
 // The value the cell currently holds, as a number (or emptyValue when blank), so "0.5" and 0.5 compare equal.

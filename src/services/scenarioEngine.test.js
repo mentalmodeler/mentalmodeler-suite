@@ -60,7 +60,9 @@ describe('runScenarioCalculation', () => {
         expectSameResults(results, direct);
 
         const { results: defaults } = await runScenarioCalculation({ model, scenario: scenario(clampA) });
-        const biggestDifference = Math.max(...results.map(({ influence }, i) => Math.abs(influence - defaults[i].influence)));
+        const biggestDifference = Math.max(
+            ...results.map(({ influence }, i) => Math.abs(influence - defaults[i].influence)),
+        );
         expect(biggestDifference).toBeGreaterThan(0.001);
     });
 

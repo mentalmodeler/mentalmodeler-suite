@@ -3,8 +3,6 @@ import {
     Box,
     Checkbox,
     LinearProgress,
-    MenuItem,
-    Select,
     Table,
     TableBody,
     TableCell,
@@ -16,6 +14,7 @@ import {
     useTheme,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
+import { normalizeScenarioSettings } from 'mm-modules';
 import {
     evenRowCellStyle,
     getValueCellStyle,
@@ -27,6 +26,7 @@ import { getPredictionScore, getScenarioChartData, getScenarioOverride } from '.
 import { runScenarioCalculation } from '../../services/scenarioEngine';
 import { NormalizedNumberInput } from '../NormalizedNumberInput/NormalizedNumberInput';
 import { ScenarioChart } from './ScenarioChart';
+import { ScenarioSettings } from './ScenarioSettings';
 
 // MUI's default TableCell padding (16px each side) leaves almost nothing for
 // content once a column is this narrow -- these columns need the room back.
@@ -35,17 +35,14 @@ const narrowCellStyle = { paddingInline: '4px' };
 // Rows that aren't driving the scenario (clamped by a value, or unchecked) read as dimmed, like the legacy app.
 const DIMMED_OPACITY = 0.65;
 
-const SQUASH_FUNCTIONS = [
-    { value: 'sigmoid', label: 'Sigmoid' },
-    { value: 'hyperbolic tangent', label: 'Hyperbolic Tangent' },
-];
-
 export const Scenario = () => {
     const dispatch = useDispatch();
     const theme = useTheme();
     const { selectedModel, selectedScenario, selectedScenarioId } = useSelector((state) => state.models) || {};
     const { concepts = [] } = selectedModel || {};
-    const [squashFunction, setSquashFunction] = useState('sigmoid');
+    // A scenario saved before settings existed has none: it reads (and runs) as the defaults, and is left as is
+    // until the user changes a setting.
+    const settings = useMemo(() => normalizeScenarioSettings(selectedScenario?.settings), [selectedScenario]);
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -56,7 +53,7 @@ export const Scenario = () => {
         }
         let cancelled = false;
         setLoading(true);
-        runScenarioCalculation({ model: selectedModel, scenario: selectedScenario, squashFunction })
+        runScenarioCalculation({ model: selectedModel, scenario: selectedScenario })
             .then(({ results: newResults }) => {
                 if (!cancelled) {
                     setResults(newResults);
@@ -74,7 +71,7 @@ export const Scenario = () => {
             cancelled = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [concepts, selectedScenario, squashFunction]);
+    }, [concepts, selectedScenario]);
 
     const resultById = useMemo(() => new Map(results.map(({ id, influence }) => [id, influence])), [results]);
 
@@ -134,13 +131,12 @@ export const Scenario = () => {
                     onBlur={onNameChange}
                     sx={{ minWidth: 240 }}
                 />
-                <Select size="small" value={squashFunction} onChange={(e) => setSquashFunction(e.target.value)}>
-                    {SQUASH_FUNCTIONS.map(({ value, label }) => (
-                        <MenuItem key={value} value={value}>
-                            {label}
-                        </MenuItem>
-                    ))}
-                </Select>
+                <ScenarioSettings
+                    settings={settings}
+                    onChange={(changed) =>
+                        dispatch({ type: 'models/setScenarioSettings', payload: { settings: changed } })
+                    }
+                />
                 <Typography variant="body2">
                     State Prediction: {loading ? '…' : Number.isNaN(prediction) ? '' : `${prediction}%`}
                 </Typography>

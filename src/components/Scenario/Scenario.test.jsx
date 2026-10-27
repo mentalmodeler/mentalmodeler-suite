@@ -1,4 +1,4 @@
-import { fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from '@mui/material';
 import { ThemeProvider as EmotionThemeProvider } from '@emotion/react';
@@ -9,6 +9,7 @@ import { sideHeaderCellStyle } from '../../constants/styles';
 import { theme } from '../../constants/theme';
 import { makeScenarioId } from '../../utils/utils';
 import { alpha } from '@mui/material';
+import { runScenarioCalculation } from '../../services/scenarioEngine';
 import { Scenario } from './Scenario';
 
 vi.mock('../../services/scenarioEngine', () => ({
@@ -16,8 +17,8 @@ vi.mock('../../services/scenarioEngine', () => ({
 }));
 vi.mock('./ScenarioChart', () => ({ ScenarioChart: () => null }));
 
-const makeStore = (scenarioConcepts = []) => {
-    const scenario = { name: 'S1', concepts: scenarioConcepts };
+const makeStore = (scenarioConcepts = [], { settings, extraScenarios = [] } = {}) => {
+    const scenario = { name: 'S1', concepts: scenarioConcepts, ...(settings ? { settings } : {}) };
     const model = {
         appId: 'm1',
         info: {},
@@ -26,7 +27,7 @@ const makeStore = (scenarioConcepts = []) => {
             { id: 'a', name: 'A', relationships: [] },
             { id: 'b', name: 'B', relationships: [] },
         ],
-        scenarios: [scenario],
+        scenarios: [scenario, ...extraScenarios],
     };
     return configureStore({
         reducer: { models: modelsReducer },
@@ -187,5 +188,93 @@ describe('Scenario row states', () => {
         expect(document.activeElement).toBe(input);
         fireEvent.wheel(input);
         expect(document.activeElement).not.toBe(input);
+    });
+});
+
+describe('Scenario settings', () => {
+    const renderStore = (store) =>
+        render(
+            <Provider store={store}>
+                <ThemeProvider theme={theme}>
+                    <EmotionThemeProvider theme={theme}>
+                        <Scenario />
+                    </EmotionThemeProvider>
+                </ThemeProvider>
+            </Provider>,
+        );
+    const pressed = (name) => screen.getByRole('button', { name }).getAttribute('aria-pressed') === 'true';
+    const lastCall = () => runScenarioCalculation.mock.calls.at(-1)[0];
+
+    beforeEach(() => {
+        runScenarioCalculation.mockReset();
+        runScenarioCalculation.mockResolvedValue({ results: [] });
+    });
+
+    it('shows and runs the defaults for a scenario with no settings, without changing the scenario', async () => {
+        const store = makeStore();
+        const original = store.getState().models.selectedScenario;
+        renderStore(store);
+        await waitFor(() => expect(runScenarioCalculation).toHaveBeenCalled());
+
+        expect(lastCall()).not.toHaveProperty('squashFunction');
+        expect(lastCall().scenario).toBe(original);
+        expect(pressed('Kosko')).toBe(true);
+        expect(screen.getByLabelText('Squash function').textContent).toBe('Sigmoid');
+        expect(Number(screen.getByLabelText('Lambda').value)).toBe(1);
+        expect(Number(screen.getByLabelText('Noise threshold').value)).toBe(0);
+        expect(store.getState().models.selectedScenario).toBe(original);
+    });
+
+    it('saves a changed rule on the scenario and recalculates with it', async () => {
+        const store = makeStore();
+        renderStore(store);
+        await waitFor(() => expect(runScenarioCalculation).toHaveBeenCalledTimes(1));
+
+        fireEvent.click(screen.getByRole('button', { name: 'Modified Kosko' }));
+
+        expect(store.getState().models.selectedScenario.settings).toEqual({ rule: 'modified kosko' });
+        await waitFor(() => expect(runScenarioCalculation).toHaveBeenCalledTimes(2));
+        expect(lastCall().scenario.settings).toEqual({ rule: 'modified kosko' });
+    });
+
+    it("shows each scenario's own settings when the selection changes", async () => {
+        const other = { name: 'S2', concepts: [], settings: { rule: 'rescaled kosko', squash: 'trivalent' } };
+        const store = makeStore([], { extraScenarios: [other] });
+        renderStore(store);
+        await waitFor(() => expect(runScenarioCalculation).toHaveBeenCalled());
+        expect(pressed('Kosko')).toBe(true);
+
+        act(() => {
+            store.dispatch({
+                type: 'models/selectScenario',
+                payload: { value: { appId: 'm1', id: makeScenarioId('m1', 'S2', 1) } },
+            });
+        });
+
+        expect(pressed('Rescaled Kosko')).toBe(true);
+        expect(pressed('Kosko')).toBe(false);
+        expect(screen.getByLabelText('Squash function').textContent).toBe('Trivalent (-1 / 0 / 1)');
+        expect(screen.queryByLabelText('Lambda')).toBeNull();
+    });
+
+    it('keeps the newest result when an older calculation finishes last', async () => {
+        const store = makeStore();
+        renderStore(store);
+        await waitFor(() => expect(runScenarioCalculation).toHaveBeenCalledTimes(1));
+        let resolveFirst;
+        let resolveSecond;
+        runScenarioCalculation
+            .mockImplementationOnce(() => new Promise((resolve) => (resolveFirst = resolve)))
+            .mockImplementationOnce(() => new Promise((resolve) => (resolveSecond = resolve)));
+
+        fireEvent.click(screen.getByRole('button', { name: 'Modified Kosko' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Rescaled Kosko' }));
+        await waitFor(() => expect(runScenarioCalculation).toHaveBeenCalledTimes(3));
+
+        await act(async () => resolveSecond({ results: [{ id: 'a', influence: 0.9 }] }));
+        await act(async () => resolveFirst({ results: [{ id: 'a', influence: -0.9 }] }));
+
+        const firstRowActualState = document.querySelector('table tbody tr').lastElementChild;
+        expect(firstRowActualState.textContent).toBe('Increase');
     });
 });

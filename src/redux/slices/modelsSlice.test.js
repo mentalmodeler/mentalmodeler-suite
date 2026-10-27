@@ -1,4 +1,5 @@
 import reducer from './modelsSlice';
+import { makeScenarioId } from '../../utils/utils.js';
 
 const baseState = (concepts) => {
     const model = { appId: 'm1', info: {}, concepts, groupNames: {} };
@@ -50,5 +51,57 @@ describe('models/setInfluence', () => {
     it('keeps the models list in sync with selectedModel', () => {
         const state = setInfluence(twoConcepts(), 'a', 'b', 0.7);
         expect(state.models[0].concepts.find((c) => c.id === 'a').relationships).toHaveLength(1);
+    });
+});
+
+describe('models/setScenarioSettings', () => {
+    const scenarioState = (selectedIndex = 0) => {
+        const scenarios = [
+            { name: 'S0', concepts: [{ id: 'a', selected: true, influence: 0.5 }] },
+            { name: 'S1', concepts: [] },
+        ];
+        const model = { appId: 'm1', info: {}, concepts: [], groupNames: {}, scenarios };
+        return {
+            models: [model],
+            selectedId: 'm1',
+            selectedModel: model,
+            selectedScenarioId: makeScenarioId('m1', scenarios[selectedIndex].name, selectedIndex),
+            selectedScenario: scenarios[selectedIndex],
+        };
+    };
+    const setSettings = (state, settings) =>
+        reducer(state, { type: 'models/setScenarioSettings', payload: { settings } });
+
+    it('stores the settings on the selected scenario, in the model and in models', () => {
+        const state = setSettings(scenarioState(), { rule: 'modified kosko' });
+        expect(state.selectedScenario.settings).toEqual({ rule: 'modified kosko' });
+        expect(state.selectedModel.scenarios[0].settings).toEqual({ rule: 'modified kosko' });
+        expect(state.models[0].scenarios[0].settings).toEqual({ rule: 'modified kosko' });
+    });
+
+    it('merges into existing settings instead of replacing them', () => {
+        const once = setSettings(scenarioState(), { rule: 'modified kosko' });
+        const twice = setSettings(once, { lambda: 3 });
+        expect(twice.selectedScenario.settings).toEqual({ rule: 'modified kosko', lambda: 3 });
+    });
+
+    it('leaves the other scenario and the scenario concepts alone', () => {
+        const before = scenarioState();
+        const state = setSettings(before, { squash: 'bivalent' });
+        expect(state.selectedModel.scenarios[1]).toBe(before.selectedModel.scenarios[1]);
+        expect(state.selectedScenario.concepts).toEqual(before.selectedScenario.concepts);
+    });
+
+    it('applies to whichever scenario is selected', () => {
+        const state = setSettings(scenarioState(1), { squash: 'trivalent' });
+        expect(state.selectedModel.scenarios[1].settings).toEqual({ squash: 'trivalent' });
+        expect(state.selectedModel.scenarios[0].settings).toBeUndefined();
+    });
+
+    it('does nothing when no scenario is selected', () => {
+        const before = { ...scenarioState(), selectedScenarioId: '', selectedScenario: null };
+        const state = setSettings(before, { rule: 'rescaled kosko' });
+        expect(state.selectedModel).toBe(before.selectedModel);
+        expect(state.models).toBe(before.models);
     });
 });

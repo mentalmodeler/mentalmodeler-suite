@@ -259,6 +259,23 @@ const modelsSlice = createSlice({
             state.models = updateModels(state.models, model);
             state.selectedScenario = scenarios[scenarioIndex];
         },
+        // Merges (not replaces) so a change to one setting keeps the others a scenario already has.
+        setScenarioSettings(state, action) {
+            const { settings } = action.payload;
+            const { index } = parseScenarioId(state.selectedScenarioId);
+            const scenarioIndex = Number(index);
+            if (Number.isNaN(scenarioIndex)) {
+                return;
+            }
+            const scenarios = (state.selectedModel.scenarios || []).map((scenario, i) =>
+                i === scenarioIndex ? { ...scenario, settings: { ...scenario.settings, ...settings } } : scenario,
+            );
+            const model = { ...state.selectedModel, scenarios };
+
+            state.selectedModel = model;
+            state.models = updateModels(state.models, model);
+            state.selectedScenario = scenarios[scenarioIndex];
+        },
     },
 });
 

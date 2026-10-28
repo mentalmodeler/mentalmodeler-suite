@@ -26,7 +26,7 @@ const makeStore = ({ scenarios = [], selectedScenarioIndex = null, view = APP_VI
                 selectedScenarioId: selected ? makeScenarioId('m1', selected.name, selectedScenarioIndex) : '',
                 selectedScenario: selected,
             },
-            app: { view, addDialogOpen: false, saveDialogOpen: false },
+            app: { view, addDialogOpen: false },
         },
     });
 };

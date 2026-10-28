@@ -3,16 +3,18 @@ import { Box, Button, Typography } from '@mui/material';
 import Papa from 'papaparse';
 import writeExcelFile from 'write-excel-file/browser';
 import { Flex } from '../IFL/ifl';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector, useStore } from 'react-redux';
 import { getMatrixRows, importCSV, loadAndParse, toCompareRefModel } from 'mm-modules';
 import { createFileInput, downloadBlob } from '../../utils/io';
 import { saveModelFromConceptMap } from '../../redux/actions/models';
 import { printModel } from '../../services/print';
+import { modelNameFromFile, saveFilename, stripExtension, toSaveModel } from '../../utils/saveMmp';
 
 import { NavMenu } from './NavMenu';
 
 export const GlobalNav = () => {
     const dispatch = useDispatch();
+    const store = useStore();
     const { selectedModel } = useSelector((state) => state.models) || {};
     const { view } = useSelector((state) => state.app) || {};
 
@@ -34,6 +36,16 @@ export const GlobalNav = () => {
         downloadBlob(new Blob([JSON.stringify(model)], { type: 'application/json' }), filename);
     };
 
+    const saveMmp = () => {
+        dispatch(saveModelFromConceptMap(view));
+        // read the store again: the flush above updated it after this render's selectedModel was taken
+        const model = store.getState().models?.selectedModel;
+        if (!model) {
+            return;
+        }
+        downloadBlob(new Blob([JSON.stringify(toSaveModel(model))], { type: 'application/json' }), saveFilename(model));
+    };
+
     const loadAndParseLocalModels = (e) => {
         const fileList = e?.target?.files;
         return (
@@ -41,7 +53,7 @@ export const GlobalNav = () => {
             fileList.length > 0 &&
             Array.from(fileList).forEach(async (f) => {
                 const model = {
-                    filename: f.name.split('.')[0],
+                    filename: modelNameFromFile(f.name),
                     ...(await loadAndParse(f)),
                 };
 
@@ -80,7 +92,7 @@ export const GlobalNav = () => {
                         payload: {
                             field: '',
                             value: {
-                                filename: f.name.split('.')[0],
+                                filename: stripExtension(f.name),
                                 ...importCSV(data),
                             },
                         },
@@ -146,18 +158,7 @@ export const GlobalNav = () => {
                     label: 'Save MMP',
                     id: 'savemmp',
                     icon: <SaveOutlined />,
-                    action: () => {
-                        // alert('Coming soon... Save mmp');
-                        // const data = store.getState();
-                        // console.log('data:', data);
-                        dispatch({
-                            type: 'app/setField',
-                            payload: {
-                                field: 'saveDialogOpen',
-                                value: true,
-                            },
-                        });
-                    },
+                    action: saveMmp,
                 },
                 {
                     label: 'Save Compare Ref',

@@ -14,7 +14,6 @@ export const APP_VIEW = {
 const initialState = {
     view: APP_VIEW.MODEL,
     addDialogOpen: false,
-    saveDialogOpen: false,
 };
 
 const appSlice = createSlice({

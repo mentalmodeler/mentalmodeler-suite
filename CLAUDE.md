@@ -43,7 +43,7 @@ Each scenario carries `settings: { rule, squash, lambda, noiseThreshold }`, kept
 
 ### App shell layout
 
-`src/App.jsx` lays out a CSS grid (`GlobalNav`, `FilesHeader`, `Files`, `Tabs`, `Content`) plus two dialogs (`AddDialog`, `SaveDialog`). On mount, if the URL has a `?demo=<url>` query param, it loads that `.mmp` URL (or a default sample model, `fire_model.mmp`, if no value given) via `mm-modules`' `loadAndParseURL` and adds it to Redux as a new model — this is how the app is deep-linked into a specific model. Named to match `mentalmodeler-js`'s own `?demo` flag, but it's a separate, unrelated mechanism — see `docs/mentalmodeler-js-deploy-and-vendoring.md`.
+`src/App.jsx` lays out a CSS grid (`GlobalNav`, `FilesHeader`, `Files`, `Tabs`, `Content`) plus one dialog (`AddDialog`). On mount, if the URL has a `?demo=<url>` query param, it loads that `.mmp` URL (or a default sample model, `fire_model.mmp`, if no value given) via `mm-modules`' `loadAndParseURL` and adds it to Redux as a new model — this is how the app is deep-linked into a specific model. Named to match `mentalmodeler-js`'s own `?demo` flag, but it's a separate, unrelated mechanism — see `docs/mentalmodeler-js-deploy-and-vendoring.md`.
 
 - **`Files`** (left rail) lists open models and their scenarios in a tree view; selecting one dispatches `saveModelFromConceptMap` (flushes the current canvas into Redux) before switching `selectedId`/`selectedScenarioId`.
 - **`Tabs`** switches `app.view` between `APP_VIEW.MODEL | MATRIX | METRICS | SCENARIO | INFO` (see `src/redux/slices/appSlice.js`). All five are wired to real content in `Content.jsx` (`ConceptMap` / `Matrix` / `Info` / `Metrics` / `Scenario`) — none are stubs. See `docs/porting-roadmap.md` for the full port-status table.
@@ -56,7 +56,7 @@ Each scenario carries `settings: { rule, squash, lambda, noiseThreshold }`, kept
 
 Two slices (`src/redux/data/rootReducer.js`):
 - **`models`** (`src/redux/slices/modelsSlice.js`) — the list of open models, which one/scenario is selected, and model-mutation reducers (`addModel`, `updateModel`, `updateModelFromConceptMap`, `setInfluence`, `selectModel`, `selectScenario`). Note the slice's actions are *not* exported/used by name — call sites dispatch plain `{ type: 'models/addModel', payload }` action objects directly instead of importing action creators (the `export const { ... } = modelsSlice.actions` line is commented out). Follow this convention when adding new model actions rather than reintroducing named exports inconsistently.
-- **`app`** (`src/redux/slices/appSlice.js`) — current `view`, and dialog open/closed flags (`addDialogOpen`, `saveDialogOpen`). Both slices share a generic `setField(state, { field, value })` reducer for simple single-field updates.
+- **`app`** (`src/redux/slices/appSlice.js`) — current `view`, and the dialog open/closed flag (`addDialogOpen`). Both slices share a generic `setField(state, { field, value })` reducer for simple single-field updates.
 
 `src/utils/utils.js` has the model/id helpers used by the slices: `makeAppId`, `makeUuid`, `makeScenarioId`/`parseScenarioId` (scenario IDs are `${appId}::${name}::${index}`), and `createModel()` (the shape of a brand-new empty model).
 
